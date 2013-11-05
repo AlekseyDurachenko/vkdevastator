@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import urllib, json, time, codecs, getopt, sys
+import urllib2, json, time, codecs, getopt, sys, socket
 
 # start section: temporary file with information about founded purpose information
 dbFile = 0
@@ -132,7 +132,7 @@ def scanWallComments(owner_id, post_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib22.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -177,7 +177,7 @@ def scanWall(owner_id, access_token, purpose_id):
         printQuery(wallQuery)       
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib22.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -227,7 +227,7 @@ def scanPhotoComments(owner_id, access_token, purpose_id):
         printQuery(wallQuery)       
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -273,7 +273,7 @@ def scanPhoto(owner_id, access_token, purpose_id):
         printQuery(wallQuery)       
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -322,7 +322,7 @@ def scanTopicComments(group_id, topic_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -367,7 +367,7 @@ def scanTopic(group_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -418,7 +418,7 @@ def scanVideoComments(owner_id, video_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -463,7 +463,7 @@ def scanVideo(owner_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -514,7 +514,7 @@ def scanNoteComments(owner_id, note_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -559,7 +559,7 @@ def scanNote(user_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -610,7 +610,7 @@ def getFriendIds(user_id, access_token):
 
     while True:        
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -646,7 +646,7 @@ def getFollowersIds(user_id, access_token):
 
     while True:        
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -686,7 +686,7 @@ def getGroupsIds(user_id, access_token):
         printQuery(wallQuery)       
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -735,7 +735,7 @@ def getSubscriptionIds(user_id, access_token):
         printQuery(wallQuery)       
         
         try:        
-            f = urllib.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -838,6 +838,8 @@ fGroups = open(groups_state, "a")
 
 # configure
 openDbFile(found_file_desc, found_file)
+# setup timeout
+socket.setdefaulttimeout(3)
 
 # result: userList, groupList
 def weNeedToBeDeeper(user_id, access_token, deep, processedUserList):
