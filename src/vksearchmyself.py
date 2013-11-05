@@ -132,7 +132,7 @@ def scanWallComments(owner_id, post_id, access_token, purpose_id):
         printQuery(wallQuery)
         
         try:        
-            f = urllib22.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
@@ -177,7 +177,7 @@ def scanWall(owner_id, access_token, purpose_id):
         printQuery(wallQuery)       
         
         try:        
-            f = urllib22.urlopen(wallQuery)
+            f = urllib2.urlopen(wallQuery)
             data = json.load(f)
             f.close()
         except:
