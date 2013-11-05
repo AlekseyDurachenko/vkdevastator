@@ -636,6 +636,7 @@ def getFriendIds(user_id, access_token):
         
         return data['response']['items']
     # end while
+    return []
 # end def
 
 # my followers
@@ -671,6 +672,7 @@ def getFollowersIds(user_id, access_token):
         
         return data['response']['items']
     # end while
+    return []
 # end def
 
 # my groups
@@ -692,6 +694,9 @@ def getGroupsIds(user_id, access_token):
             continue
 
         if "error" in data:
+            # Access to the group list is denied due to the user's privacy settings
+            if data["error"]["error_code"] == 260:
+                break;
             # user deactivated
             if data["error"]["error_code"] == 15:
                 break;
@@ -710,7 +715,7 @@ def getGroupsIds(user_id, access_token):
         
         ids += data['response']['items']
         
-        printProgress(offset, data['response']['count'])
+        #printProgress(offset, data['response']['count'])
         if data['response']['count'] <= offset + count:
             break;
 
@@ -762,12 +767,13 @@ def getSubscriptionIds(user_id, access_token):
         #offset += 1000
     # end while
     #return ids
+    return [], []
 # end def
 
 def showUsage():
     print "== vksearchmyself.py - v.0.1.0  =="
     print "Usage: "
-    print "    vksearchmyself.py --access_token <> --purpose_id <> --users_state <> --groups_state <> --found_file <> --found_file_desc <>"
+    print "    vksearchmyself.py --access_token <> --purpose_id <> --users_state <> --groups_state <> --found_file <> --found_file_desc <> [--deep <>]"
 
 access_token = None
 purpose_id = None
@@ -775,8 +781,9 @@ users_state = None
 groups_state = None
 found_file = None
 found_file_desc = None
+deep = 0
 
-options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access_token=', 'purpose_id=', 'users_state=', 'groups_state=', 'found_file=', 'found_file_desc='])
+options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access_token=', 'purpose_id=', 'users_state=', 'groups_state=', 'found_file=', 'found_file_desc=', 'deep='])
 for opt, arg in options:
     if opt == '--access_token':
         access_token = arg
@@ -790,6 +797,8 @@ for opt, arg in options:
         found_file = arg
     elif opt == '--found_file_desc':
         found_file_desc = arg
+    elif opt == "--deep":
+        deep = int(arg)
 
 if access_token == None or purpose_id == None or users_state == None or groups_state == None or found_file == None or found_file_desc == None:
     showUsage()
@@ -801,7 +810,7 @@ print "Users state file       :", users_state
 print "Groups state file      :", groups_state
 print "Founded records        :", found_file
 print "Desc of founded records:", found_file_desc
-
+print "Deep                   :", deep
 # deduplicate
 processedUsers = []
 processedGroups = []
@@ -830,18 +839,37 @@ fGroups = open(groups_state, "a")
 # configure
 openDbFile(found_file_desc, found_file)
 
-# my groups, subs, friends, followers
-myFriendList = getFriendIds(purpose_id, access_token)
-myFollowList = getFollowersIds(purpose_id, access_token)
-myGroupList = getGroupsIds(purpose_id, access_token)
-mySubscribeUserList, mySubscribeGroupList = getSubscriptionIds(purpose_id, access_token)
+# result: userList, groupList
+def weNeedToBeDeeper(user_id, access_token, deep, processedUserList):
+    # info
+    print "Deep = %d, user_id = %d | Processing number = %d" % (deep, user_id, len(processedUserList))    
+    # process the user    
+    userFriendList = getFriendIds(user_id, access_token)
+    userFollowList = getFollowersIds(user_id, access_token)
+    userGroupList = getGroupsIds(user_id, access_token)
+    userSubscribeUserList, mySubscribeGroupList = getSubscriptionIds(user_id, access_token)
+    localUserList = userFriendList + userFollowList + userSubscribeUserList
+    localGroupList = userGroupList + mySubscribeGroupList
+    # mark current user as processed
+    processedUserList += [user_id]
+    # go to deeper    
+    if deep > 0:
+        for id in localUserList:
+            if id not in processedUserList:
+                u, g, processedUserList = weNeedToBeDeeper(id, access_token, deep-1, processedUserList)
+                localUserList = list(set(localUserList + u))
+                localGroupList = list(set(localGroupList + g))
+                print "Users count :", len(localUserList)
+                print "Groups count:", len(localGroupList)
+        # end for
+    # end if                
+    return localUserList, localGroupList, processedUserList
 
-# object for scanning
-userList = myFriendList + myFollowList + mySubscribeUserList + [purpose_id]
-groupList = myGroupList + mySubscribeGroupList
-userList = []
-print "Total user count :", len(userList)
-print "Total group count:", len(groupList)
+    
+userList, groupList, processedUserList = weNeedToBeDeeper(purpose_id, access_token, deep, [])
+userList = list(set(userList + [purpose_id]))
+print "Total users count :", len(userList)
+print "Total groups count:", len(groupList)
 
 # scan
 for id in userList:
