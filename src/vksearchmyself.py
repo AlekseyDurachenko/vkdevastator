@@ -708,7 +708,7 @@ def getGroupsIds(user_id, access_token):
                 exit(-1)   
         #end if
         
-        ids.append(data['response']['items'])
+        ids += data['response']['items']
         
         printProgress(offset, data['response']['count'])
         if data['response']['count'] <= offset + count:
@@ -717,6 +717,51 @@ def getGroupsIds(user_id, access_token):
         offset += 1000
     # end while
     return ids
+# end def
+
+# my subscription: users, groups
+def getSubscriptionIds(user_id, access_token):
+    count = 200
+    offset = 0
+    #ids = []
+    
+    while True:
+        wallQuery = "https://api.vk.com/method/users.getSubscriptions?v=5.2&access_token=%s&user_id=%d&count=%d&offset=%d" % (access_token, user_id, count, offset)
+        printQuery(wallQuery)       
+        
+        try:        
+            f = urllib.urlopen(wallQuery)
+            data = json.load(f)
+            f.close()
+        except:
+            time.sleep(2)
+            continue
+
+        if "error" in data:
+            # user deactivated
+            if data["error"]["error_code"] == 15:
+                break;
+            # user was deleted or banned
+            if data["error"]["error_code"] == 18:
+                break;
+            # too many queryes per second
+            if data["error"]["error_code"] == 6:
+                time.sleep(0.5)
+                continue
+            else:
+                print "ERROR: ", data
+                continue
+                exit(-1)   
+        #end if
+        return data['response']['users']['items'], data['response']['groups']['items']
+        
+        #printProgress(offset, data['response']['count'])
+        #if data['response']['count'] <= offset + count:
+        #    break;
+        # 
+        #offset += 1000
+    # end while
+    #return ids
 # end def
 
 def showUsage():
@@ -785,13 +830,23 @@ fGroups = open(groups_state, "a")
 # configure
 openDbFile(found_file_desc, found_file)
 
+# my groups, subs, friends, followers
+myFriendList = getFriendIds(purpose_id, access_token)
+myFollowList = getFollowersIds(purpose_id, access_token)
+myGroupList = getGroupsIds(purpose_id, access_token)
+mySubscribeUserList, mySubscribeGroupList = getSubscriptionIds(purpose_id, access_token)
+
 # object for scanning
-myFriends = getFriendIds(purpose_id, access_token) + getFollowersIds(purpose_id, access_token) + [purpose_id]
-myGroups = getGroupsIds(purpose_id, access_token)
+userList = myFriendList + myFollowList + mySubscribeUserList + [purpose_id]
+groupList = myGroupList + mySubscribeGroupList
+userList = []
+print "Total user count :", len(userList)
+print "Total group count:", len(groupList)
 
 # scan
-for id in myFriends:
+for id in userList:
     if id in processedUsers:
+        print "User %d already processed" % (id)
         continue
     scanWall(id, access_token, purpose_id)
     scanPhoto(id, access_token, purpose_id)
@@ -799,8 +854,10 @@ for id in myFriends:
     scanVideo(id, access_token, purpose_id)
     scanNote(id, access_token, purpose_id)
     fUsers.write("%d;" % (id))
-for id in myGroups:
+    processedUsers.append(id)
+for id in groupList:
     if id in processedGroups:
+        print "Group %d already processed" % (id)
         continue
     scanWall(-id, access_token, purpose_id)
     scanPhoto(-id, access_token, purpose_id)
@@ -808,6 +865,7 @@ for id in myGroups:
     scanVideo(-id, access_token, purpose_id)
     scanTopic(id, access_token, purpose_id)
     fGroups.write("%d;" % (id))
+    processedGroups.append(id)
 
 fUsers.close()
 fGroups.close()
