@@ -783,7 +783,7 @@ def getSubscriptionIds(user_id, access_token):
 def showUsage():
     print "== vksearchmyself.py - v.0.1.0  =="
     print "Usage: "
-    print "    vksearchmyself.py --access_token <> --purpose_id <> --users_state <> --groups_state <> --found_file <> --found_file_desc <> [--deep <>]"
+    print "    vksearchmyself.py --access_token <> --purpose_id <> --users_state <> --groups_state <> --found_file <> --found_file_desc <> [--deep <>][--groups_of_friends]"
 
 access_token = None
 purpose_id = None
@@ -792,8 +792,9 @@ groups_state = None
 found_file = None
 found_file_desc = None
 deep = 0
+groups_of_friends = False
 
-options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access_token=', 'purpose_id=', 'users_state=', 'groups_state=', 'found_file=', 'found_file_desc=', 'deep='])
+options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access_token=', 'purpose_id=', 'users_state=', 'groups_state=', 'found_file=', 'found_file_desc=', 'deep=', 'groups_of_friends'])
 for opt, arg in options:
     if opt == '--access_token':
         access_token = arg
@@ -809,6 +810,8 @@ for opt, arg in options:
         found_file_desc = arg
     elif opt == "--deep":
         deep = int(arg)
+    elif opt == "--groups_of_friends":
+        groups_of_friends = True
 
 if access_token == None or purpose_id == None or users_state == None or groups_state == None or found_file == None or found_file_desc == None:
     showUsage()
@@ -821,6 +824,7 @@ print "Groups state file      :", groups_state
 print "Founded records        :", found_file
 print "Desc of founded records:", found_file_desc
 print "Deep                   :", deep
+print "Groups of friends      :", groups_of_friends
 # deduplicate
 processedUsers = []
 processedGroups = []
@@ -877,9 +881,23 @@ def weNeedToBeDeeper(user_id, access_token, deep, processedUserList):
     # end if                
     return localUserList, localGroupList, processedUserList
 
+# result: userList, groupList
+def groupsOfFriends(user_id, access_token):
+    # process the user    
+    userFriendList = getFriendIds(user_id, access_token)
+    userFollowList = getFollowersIds(user_id, access_token)
+    userSubscribeUserList, mySubscribeGroupList = getSubscriptionIds(user_id, access_token)
+    localUserList = userFriendList + userFollowList + userSubscribeUserList
+    # scan groups
+    groups = []
+    for id in localUserList:
+        groups += getGroupsIds(id, access_token)
+    return groups
     
 userList, groupList, processedUserList = weNeedToBeDeeper(purpose_id, access_token, deep, [])
 userList = list(set(userList + [purpose_id]))
+if deep == 0 and groups_of_friends:
+    groupList = list(set(groupList + groupsOfFriends(purpose_id, access_token)))
 print "Total users count :", len(userList)
 print "Total groups count:", len(groupList)
 
