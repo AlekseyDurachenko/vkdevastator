@@ -391,16 +391,26 @@ def scanTopic(group_id, access_token, purpose_id):
                 exit(-1)   
         #end if
         
-        for item in data['response']['items']:
-            if item['created_by'] == purpose_id:
-                writeTopicRecord(group_id, item['id'], item['title']);
-            if item['comments'] > 0:
-                scanTopicComments(group_id, item['id'], access_token, purpose_id)
-        # end for
-        
-        printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
+        if 'topics' in data['response']:
+            for item in data['response']['topics']['items']:
+                if item['created_by'] == purpose_id:
+                    writeTopicRecord(group_id, item['id'], item['title']);
+                if item['comments'] > 0:
+                    scanTopicComments(group_id, item['id'], access_token, purpose_id)
+            # end for
+            printProgress(offset, data['response']['topics']['count'])
+            if data['response']['topics']['count'] <= offset + count:
+                break;
+        else:
+            for item in data['response']['items']:
+                if item['created_by'] == purpose_id:
+                    writeTopicRecord(group_id, item['id'], item['title']);
+                if item['comments'] > 0:
+                    scanTopicComments(group_id, item['id'], access_token, purpose_id)
+            # end for
+            printProgress(offset, data['response']['count'])
+            if data['response']['count'] <= offset + count:
+                break;
 
         offset += 100
     # end while
