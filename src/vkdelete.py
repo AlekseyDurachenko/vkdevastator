@@ -212,7 +212,7 @@ total_count = delete_count = 0
 for line in lines:
     if 'NOTE_COMMENT ' in line:
         [type_id, user_id, note_id, comment_id] = line.split(" ")
-        if removeNoteComment(access_token, note_id, comment_id) == True:
+        if removeNoteComment(access_token, user_id, comment_id) == True:
             delete_count += 1
         total_count += 1
 print "NOTE_COMMENT: %d of %d was removed" % (delete_count, total_count)
