@@ -783,7 +783,7 @@ def getSubscriptionIds(user_id, access_token):
 def showUsage():
     print "== vksearchactivities.py - v.0.1.0  =="
     print "Usage: "
-    print "    vksearchactivities.py --access-token <> --target-id <> --users-state-file <> --groups-state-file <> --activities-file <> --activities-detail-file <> [--search-depth <>][--scan-groups-of-friends]"
+    print "    vksearchactivities.py --access-token <> --target-id <> --users-state-file <> --groups-state-file <> --activities-file <> --activities-detail-file <> [--custom-user-ids <>][--custom-group-ids <>][--search-depth <>][--scan-groups-of-friends]"
 
 access_token = None
 purpose_id = None
@@ -793,9 +793,11 @@ found_file = None
 found_file_desc = None
 deep = 0
 groups_of_friends = False
+custom_user_ids = []
+custom_group_ids = []
 
 try:
-    options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access-token=', 'target-id=', 'users-state-file=', 'groups-state-file=', 'activities-file=', 'activities-detail-file=', 'search-depth=', 'scan-groups-of-friends'])
+    options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access-token=', 'target-id=', 'users-state-file=', 'groups-state-file=', 'activities-file=', 'activities-detail-file=', 'custom-user-ids=', 'custom-group-ids=', 'search-depth=', 'scan-groups-of-friends'])
     for opt, arg in options:
         if opt == '--access-token':
             access_token = arg
@@ -811,6 +813,10 @@ try:
             found_file_desc = arg
         elif opt == "--search-depth":
             deep = int(arg)
+        elif opt == "--custom-user-ids":
+            custom_user_ids = arg.split(",")
+        elif opt == "--custom-group-ids":
+            custom_group_ids = arg.split(",")
         elif opt == "--scan-groups-of-friends":
             groups_of_friends = True
 except:
@@ -829,6 +835,9 @@ print "Founded records        :", found_file
 print "Desc of founded records:", found_file_desc
 print "Deep                   :", deep
 print "Groups of friends      :", groups_of_friends
+print "Custom user ids        :", custom_user_ids
+print "Custom group ids       :", custom_group_ids
+
 # deduplicate
 processedUsers = []
 processedGroups = []
@@ -902,6 +911,17 @@ userList, groupList, processedUserList = weNeedToBeDeeper(purpose_id, access_tok
 userList = list(set(userList + [purpose_id]))
 if deep == 0 and groups_of_friends:
     groupList = list(set(groupList + groupsOfFriends(purpose_id, access_token)))
+
+# add custom ids
+for id in custom_user_ids:
+    userList += [int(id)]
+for id in custom_group_ids:
+    groupList += [int(id)]
+
+# remove duplicate
+userList = list(set(userList))
+groupList = list(set(groupList))    
+
 print "Total users count :", len(userList)
 print "Total groups count:", len(groupList)
 
