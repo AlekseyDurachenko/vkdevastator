@@ -17,768 +17,403 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import urllib2, json, time, codecs, getopt, sys, socket
 
-# start section: temporary file with information about founded purpose information
-dbFile = 0
-dbMachineFile = 0
-def openDbFile(fileName, fileNameMachine):
-    global dbFile 
-    global dbMachineFile
-    dbFile = codecs.open(fileName, 'a', 'utf-8')
-    dbMachineFile = codecs.open(fileNameMachine, 'a', 'utf-8')
-
-def writePostRecord(owner_id, post_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "POST %d %d %s" % (owner_id, post_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("POST %d %d\n" % (owner_id, post_id))
-
-def writePostCommentRecord(owner_id, post_id, comment_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "POST_COMMENT %d %d %d %s" % (owner_id, post_id, comment_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("POST_COMMENT %d %d %d\n" % (owner_id, post_id, comment_id))
-
-def writePhotoRecord(owner_id, photo_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "PHOTO %d %d %s" % (owner_id, photo_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("PHOTO %d %d\n" % (owner_id, photo_id))
-
-def writePhotoCommentRecord(owner_id, comment_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "PHOTO_COMMENT %d %d %s" % (owner_id, comment_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("PHOTO_COMMENT %d %d\n" % (owner_id, comment_id))
-
-def writeTopicRecord(group_id, topic_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "TOPIC %d %d %s" % (group_id, topic_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("TOPIC %d %d\n" % (group_id, topic_id))
-
-def writeTopicCommentRecord(group_id, topic_id, comment_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "TOPIC_COMMENT %d %d %d %s" % (group_id, topic_id, comment_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("TOPIC_COMMENT %d %d %d\n" % (group_id, topic_id, comment_id))
-
-def writeVideoRecord(owner_id, topic_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "VIDEO %d %d %s" % (owner_id, topic_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("VIDEO %d %d\n" % (owner_id, topic_id))
-
-def writeVideoCommentRecord(owner_id, video_id, comment_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "VIDEO_COMMENT %d %d %d %s" % (owner_id, video_id, comment_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("VIDEO_COMMENT %d %d %d\n" % (owner_id, video_id, comment_id))
-
-def writeNoteRecord(user_id, note_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "NOTE %d %d %s" % (user_id, note_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("NOTE %d %d\n" % (user_id, note_id))
-
-def writeNoteCommentRecord(user_id, note_id, comment_id, text):
-    global dbFile
-    global dbMachineFile
-    data = "NOTE_COMMENT %d %d %d %s" % (user_id, note_id, comment_id, text)
-    print data
-    dbFile.write(data + "\n")
-    dbMachineFile.write("NOTE_COMMENT %d %d %d\n" % (user_id, note_id, comment_id))
-
-def closeDbFile():
-    global dbFile
-    global dbMachineFile
-    dbFile.close()
-    dbMachineFile.close()
-# end section
-
-# start section: debug information
-def printQuery(query):
-    print query
-    pass
-
-def printProgress(offset, count):
-    print "Progress %d of %d scanned" % (offset, count) 
-# end debug section
-
-# start sction: vk wall scanner
-def scanWallComments(owner_id, post_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/wall.getComments?v=5.2&access_token=%s&owner_id=%d&post_id=%d&count=%d&offset=%d" % (access_token, owner_id, post_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)               
-        # end if
-        
-        for item in data['response']['items']:
-            if item['from_id'] == purpose_id:
-                writePostCommentRecord(owner_id, post_id, item['id'], item['text']);
-        # end for
-        
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-
-def scanWall(owner_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/wall.get?v=5.2&access_token=%s&owner_id=%d&count=%d&offset=%d" % (access_token, owner_id, count, offset)
-        printQuery(wallQuery)       
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        for item in data['response']['items']:
-            if item['from_id'] == purpose_id:
-                writePostRecord(owner_id, item['id'], item['text']);
-            if item['comments']['count'] > 0:
-                scanWallComments(owner_id, item['id'], access_token, purpose_id)
-        # end for
-        
-        printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-# end section
-
-# start sction: vk photo scanner
-def scanPhotoComments(owner_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/photos.getAllComments?v=5.2&access_token=%s&owner_id=%d&count=%d&offset=%d" % (access_token, owner_id, count, offset)
-        printQuery(wallQuery)       
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        for item in data['response']['items']:
-            if item['from_id'] == purpose_id:
-                writePhotoCommentRecord(owner_id, item['id'], item['text']);
-        # end for
-        
-        printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-
-def scanPhoto(owner_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/photos.getAll?v=5.2&access_token=%s&owner_id=%d&count=%d&offset=%d" % (access_token, owner_id, count, offset)
-        printQuery(wallQuery)       
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        for item in data['response']['items']:
-            if 'user_id' in item:
-                if item['user_id'] == purpose_id:
-                    writePhotoRecord(owner_id, item['id'], item['text']);
-        # end for
-        
-        printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-# end section
-
-# start sction: vk topic scanner
-def scanTopicComments(group_id, topic_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/board.getComments?v=5.2&access_token=%s&group_id=%d&topic_id=%d&count=%d&offset=%d" % (access_token, group_id, topic_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)               
-        # end if
-        
-        for item in data['response']['items']:
-            if item['from_id'] == purpose_id:
-                writeTopicCommentRecord(group_id, topic_id, item['id'], item['text']);
-        # end for
-        
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-
-def scanTopic(group_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/board.getTopics?v=5.2&access_token=%s&group_id=%d&count=%d&offset=%d" % (access_token, group_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        if 'topics' in data['response']:
-            for item in data['response']['topics']['items']:
-                if item['created_by'] == purpose_id:
-                    writeTopicRecord(group_id, item['id'], item['title']);
-                if item['comments'] > 0:
-                    scanTopicComments(group_id, item['id'], access_token, purpose_id)
-            # end for
-            printProgress(offset, data['response']['topics']['count'])
-            if data['response']['topics']['count'] <= offset + count:
-                break;
+class ActivitiesSearcher:
+    # -------------------------------------------------------------------------
+    # section: settings
+    # -------------------------------------------------------------------------
+    #
+    __targetId = None
+    __accessToken = None
+    __apiVersion = 5.2
+    #
+    def setAccessToken(self, accessToken):
+        self.__accessToken = accessToken
+    # 
+    def setApiVersion(self, apiVersion):
+        self.__apiVersion = apiVersion
+    #
+    def setTargetId(self, id):
+        self.__targetId = id
+    # -------------------------------------------------------------------------
+    # section: open/close files
+    # -------------------------------------------------------------------------
+    #
+    __activitiesFile = None
+    __activitiesDetailFile = None
+    #
+    def openActivitiesFile(self,  fileName, rewrite = False):
+        if rewrite == False:
+            self.__activitiesFile = open(fileName,  'a')
         else:
-            for item in data['response']['items']:
-                if item['created_by'] == purpose_id:
-                    writeTopicRecord(group_id, item['id'], item['title']);
-                if item['comments'] > 0:
-                    scanTopicComments(group_id, item['id'], access_token, purpose_id)
+            self.__activitiesFile = open(fileName,  'w')
+    #
+    def openActivitiesDetailFile(self, fileName, rewrite = False):
+        if rewrite == False:
+            self.__activitiesDetailFile = codecs.open(fileName, 'a', 'utf-8')
+        else:
+            self.__activitiesDetailFile = codecs.open(fileName, 'w', 'utf-8')
+    #
+    def closeActivitiesFile(self):
+        self.__activitiesFile.close()        
+    #
+    def closeActivitiesDetailFile(self):
+        self.__activitiesDetailFile.close()        
+    #
+    # -------------------------------------------------------------------------
+    # section: write activities details to the file
+    # -------------------------------------------------------------------------
+    #
+    def writePostDetail(self, owner_id, post_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : POST"
+        data += "\n" + "OWNER_ID   : %d" % (owner_id)
+        data += "\n" + "POST_ID    : %d" % (post_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)
+    #
+    def writePostCommentDetail(self, owner_id, post_id, comment_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : POST_COMMENT"
+        data += "\n" + "OWNER_ID   : %d" % (owner_id)
+        data += "\n" + "POST_ID    : %d" % (post_id)
+        data += "\n" + "COMMENT_ID : %d" % (comment_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)
+    #
+    def writePhotoDetail(self, owner_id, photo_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : PHOTO"
+        data += "\n" + "OWNER_ID   : %d" % (owner_id)
+        data += "\n" + "PHOTO_ID   : %d" % (photo_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    #
+    def writePhotoCommentDetail(self, owner_id, comment_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : PHOTO_COMMENT"
+        data += "\n" + "OWNER_ID   : %d" % (owner_id)
+        data += "\n" + "COMMENT_ID : %d" % (comment_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    #
+    def writeTopicDetail(self, group_id, topic_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : TOPIC"
+        data += "\n" + "GROUP_ID   : %d" % (group_id)
+        data += "\n" + "TOPIC_ID   : %d" % (topic_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    #
+    def writeTopicCommentDetail(self, group_id, topic_id, comment_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : TOPIC_COMMENT"
+        data += "\n" + "GROUP_ID   : %d" % (group_id)
+        data += "\n" + "TOPIC_ID   : %d" % (topic_id)
+        data += "\n" + "COMMENT_ID : %d" % (comment_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    #
+    def writeVideoDetail(self, owner_id, video_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : VIDEO"
+        data += "\n" + "OWNER_ID   : %d" % (owner_id)
+        data += "\n" + "VIDEO_ID   : %d" % (video_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    #
+    def writeVideoCommentDetail(self, owner_id, video_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : VIDEO_COMMENT"
+        data += "\n" + "OWNER_ID   : %d" % (owner_id)
+        data += "\n" + "VIDEO_ID   : %d" % (video_id)
+        data += "\n" + "COMMENT_ID : %d" % (video_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)   
+    #
+    def writeNoteDetail(self, user_id, note_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : NOTE"
+        data += "\n" + "USER_ID    : %d" % (user_id)
+        data += "\n" + "NOTE_ID    : %d" % (note_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    #
+    def writeNoteCommentDetail(self, user_id, note_id, comment_id, text):
+        data  = "========================================"
+        data += "\n" + "TYPE       : NOTE_COMMENT"
+        data += "\n" + "USER_ID    : %d" % (user_id)
+        data += "\n" + "NOTE_ID    : %d" % (note_id)
+        data += "\n" + "COMMENT_ID : %d" % (comment_id)
+        data += "\n" + "TEXT       : %s" % (text)
+        data += "\n"
+        self.__activitiesDetailFile.write(data)    
+    # 
+    # -------------------------------------------------------------------------
+    # section: write activities to the file
+    # -------------------------------------------------------------------------
+    #
+    def writePost(self, owner_id, post_id):
+        self.__activitiesFile.write("POST %d %d\n" % (owner_id, post_id));
+    #
+    def writePostComment(self, owner_id, post_id, comment_id):
+        self.__activitiesFile.write("POST_COMMENT %d %d %d\n" % (owner_id, post_id, comment_id));
+    #
+    def writePhoto(self, owner_id, photo_id):
+        self.__activitiesFile.write("PHOTO %d %d\n" % (owner_id, photo_id))
+    #
+    def writePhotoComment(self, owner_id, comment_id):
+        self.__activitiesFile.write("PHOTO_COMMENT %d %d\n" % (owner_id, comment_id))
+    #
+    def writeTopic(self, group_id, topic_id):
+        self.__activitiesFile.write("TOPIC %d %d\n" % (group_id, topic_id))
+    #
+    def writeTopicComment(self, group_id, topic_id, comment_id):
+        self.__activitiesFile.write("TOPIC_COMMENT %d %d %d\n" % (group_id, topic_id, comment_id))
+    #
+    def writeVideo(self, owner_id, video_id):
+        self.__activitiesFile.write("VIDEO %d %d\n" % (owner_id, video_id))
+    #
+    def writeVideoComment(self, owner_id, video_id, comment_id):
+        self.__activitiesFile.write("VIDEO_COMMENT %d %d %d\n" % (owner_id, video_id, comment_id))
+    #
+    def writeNote(self, user_id, note_id):
+        self.__activitiesFile.write("NOTE %d %d\n" % (user_id, note_id))
+    #
+    def writeNoteComment(self, user_id, note_id, comment_id):
+        self.__activitiesFile.write("NOTE_COMMENT %d %d %d\n" % (user_id, note_id, comment_id))
+    #
+    # -------------------------------------------------------------------------
+    # section: api call's
+    # -------------------------------------------------------------------------
+    #    
+    # return: response or None on error
+    def callApi(self, url):
+        url = "https://api.vk.com/method/" + url;
+        url += "&v=%s" % (self.__apiVersion)
+        if self.__accessToken != None:
+            url += "&access_token=%s" % (self.__accessToken)
+        
+        while True:
+            print url
+            try:        
+                reply = urllib2.urlopen(url)
+                data = json.load(reply)
+                reply.close()
+            except:
+                time.sleep(2)
+                continue
+    
+            if "error" in data:
+                # too many queryes per second. wait and retry
+                if data["error"]["error_code"] == 6:
+                    time.sleep(1)
+                    continue
+                # something else
+                return None
+            # end if
+            return data["response"]
+        # end while    
+    #        
+    # return: response or None on error
+    def singleQuery(self, query):        
+        return self.callApi(query)
+    #
+    # return: [response] or None on error
+    def multiQuery(self, query, itemperpage):
+        pages = []
+        offset = 0
+        while True:
+            localQuery = query + "&offset=%d&count=%d" % (offset, itemperpage)
+            
+            response = self.callApi(localQuery)
+            if response == None:
+                return None
+                
+            pages.append(response)
+            
+            # one exception exists for searchTopic()
+            if 'topics' in response:
+                if response['topics']['count'] <= offset + itemperpage:
+                    break;   
+            # another exception exists for fetchSubscriptionIds()
+            if 'users' in response and 'groups' in response:
+                if response['users']['count'] <= offset + itemperpage and response['groups']['count'] <= offset + itemperpage :
+                    break;
+            else:
+                if response['count'] <= offset + itemperpage:
+                    break;
+                
+            offset += itemperpage
+        # end while
+        return pages
+    #
+    def searchPostComment(self, owner_id, post_id):
+        result = self.multiQuery("wall.getComments?owner_id=%d&post_id=%d" % (owner_id, post_id), 100)        
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['from_id'] == self.__targetId:
+                        self.writePostComment(owner_id, post_id, item['id'])
+                        self.writePostCommentDetail(owner_id, post_id, item['id'], item['text'])
+                # end for
             # end for
-            printProgress(offset, data['response']['count'])
-            if data['response']['count'] <= offset + count:
-                break;
+    #
+    def searchPost(self, owner_id):
+        result = self.multiQuery("wall.get?owner_id=%d" % (owner_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['from_id'] == self.__targetId:
+                        self.writePost(owner_id, item['id'])
+                        self.writePostDetail(owner_id, item['id'], item['text'])
+                    if item['comments']['count'] > 0:
+                        self.searchPostComment(owner_id, item['id'])
+                # end for
+            # end for        
+    #
+    def searchPhotoComment(self, owner_id):
+        result = self.multiQuery("photos.getAllComments?owner_id=%d" % (owner_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['from_id'] == self.__targetId:
+                        self.writePhotoComment(owner_id, item['id'])
+                        self.writePhotoCommentDetail(owner_id, item['id'], item['text'])
+                # end for
+            # end for
+    #
+    def searchPhoto(self, owner_id):
+        result = self.multiQuery("photos.getAll?owner_id=%d" % (owner_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if 'user_id' in item:
+                        if item['user_id'] == self.__targetId:
+                            self.writePhoto(owner_id, item['id'])
+                            self.writePhotoDetail(owner_id, item['id'], item['text'])
+                # end for
+            # end for
+    #
+    def searchTopicComment(self, group_id, topic_id):
+        result = self.multiQuery("board.getComments?group_id=%d&topic_id=%d" % (group_id, topic_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['from_id'] == self.__targetId:
+                        self.writeTopicComment(group_id, topic_id, item['id'])
+                        self.writeTopicCommentDetail(group_id, topic_id, item['id'], item['text'])
+                # end for
+            # end for        
+    #
+    def searchTopic(self, group_id):
+        result = self.multiQuery("board.getTopics?group_id=%d" % (group_id), 100)
+        if result != None:
+            for response in result:     
+                tmp = response
+                if 'topics' in response:
+                    tmp = response['topics']
+                    
+                for item in tmp['items']:
+                    if item['created_by'] == self.__targetId:
+                        self.writeTopic(group_id, item['id'])
+                        self.writeTopicDetail(group_id, item['id'], item['title'])
+                        if item['comments']['count'] > 0:
+                            self.searchTopicComment(group_id, item['id'])                
+                # end for
+            # end for   
+    #
+    def searchVideoComment(self, owner_id, video_id):
+        result = self.multiQuery("video.getComments?owner_id=%d&video_id=%d" % (owner_id, video_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['from_id'] == self.__targetId:
+                        self.writeVideoComment(owner_id, video_id, item['id'])
+                        self.writeVideoCommentDetail(owner_id, video_id, item['id'], item['text'])
+                # end for
+            # end for     
+    #
+    def searchVideo(self, owner_id):
+        result = self.multiQuery("video.get?owner_id=%d" % (owner_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['owner_id'] == self.__targetId:
+                        self.writeVideo(owner_id, item['id'])
+                        self.writeVideoDetail(owner_id, item['id'], item['title'])
+                    if item['comments'] > 0:
+                        self.searchVideoComment(owner_id, item['id'])
+                # end for
+            # end for    
+    #
+    def searchNoteComment(self, owner_id, note_id):
+        result = self.multiQuery("notes.getComments?owner_id=%d&note_id=%d" % (owner_id, note_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if int(item['uid']) == self.__targetId:
+                        self.writeNoteComment(owner_id, note_id, int(item['id']))
+                        self.writeNoteCommentDetail(owner_id, note_id, int(item['id']), item['message'])
+                # end for
+            # end for  
+    #
+    def searchNote(self, owner_id):
+        result = self.multiQuery("notes.get?owner_id=%d" % (owner_id), 100)
+        if result != None:
+            for response in result:
+                for item in response['items']:
+                    if item['owner_id'] == self.__targetId:
+                        self.writeNote(owner_id, item['id'])
+                        self.writeNoteDetail(owner_id, item['id'], item['title'])
+                    if item['comments']['count'] > 0:
+                        self.searchNoteComment(owner_id, item['id'])
+                # end for
+            # end for   
+    #
+    #  return: ID's list
+    def fetchFriendIds(self, user_id):
+        result = self.singleQuery("friends.get?user_id=%d" % (user_id))
+        if result != None:
+            return result['items']
+        return []
+    #
+    #  return: ID's list
+    def fetchFollowerIds(self, user_id):
+        result = self.singleQuery("users.getFollowers?user_id=%d" % (user_id))
+        if result != None:
+            return result['items']
+        return []
+    #
+    # return ID's list
+    def fetchGroupIds(self, user_id):
+        result = self.multiQuery("groups.get?user_id=%d" % (user_id), 1000)
 
-        offset += 100
-    # end while
-# end def
-# end section
+        itemList = []
+        if result != None:
+            for response in result:
+                itemList += response['items']
+        return itemList
+    #
+    # return ID's list user_list, group_list
+    def fetchSubscriptionIds(self, user_id):
+        result = self.multiQuery("users.getSubscriptions?user_id=%d" % (user_id), 200)
 
-
-# start sction: vk video scanner
-def scanVideoComments(owner_id, video_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/video.getComments?v=5.2&access_token=%s&owner_id=%d&video_id=%d&count=%d&offset=%d" % (access_token, owner_id, video_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)               
-        # end if
-        
-        for item in data['response']['items']:
-            if item['from_id'] == purpose_id:
-                writeVideoCommentRecord(owner_id, video_id, item['id'], item['text']);
-        # end for
-        
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-
-def scanVideo(owner_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/video.get?v=5.2&access_token=%s&owner_id=%d&count=%d&offset=%d" % (access_token, owner_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        for item in data['response']['items']:
-            if item['owner_id'] == purpose_id:
-                writeVideoRecord(owner_id, item['id'], item['title']);
-            if item['comments'] > 0:
-                scanVideoComments(owner_id, item['id'], access_token, purpose_id)
-        # end for
-        
-        printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-# end section
-
-
-# start sction: vk note scanner
-def scanNoteComments(owner_id, note_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/notes.getComments?v=5.2&access_token=%s&owner_id=%d&note_id=%d&count=%d&offset=%d" % (access_token, owner_id, note_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)               
-        # end if
-        
-        for item in data['response']['items']:
-            if int(item['uid']) == purpose_id:
-                writeNoteCommentRecord(owner_id, note_id, int(item['id']), item['message']);
-        # end for
-        
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-
-def scanNote(user_id, access_token, purpose_id):
-    count = 100
-    offset = 0
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/notes.get?v=5.2&access_token=%s&user_id=%d&count=%d&offset=%d" % (access_token, user_id, count, offset)
-        printQuery(wallQuery)
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # note not found
-            if data["error"]["error_code"] == 180:
-                break
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        for item in data['response']['items']:
-            if item['owner_id'] == purpose_id:
-                writeNoteRecord(user_id, item['id'], item['title']);
-            if item['comments'] > 0:
-                scanNoteComments(user_id, item['id'], access_token, purpose_id)
-        # end for
-        
-        printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 100
-    # end while
-# end def
-# end section
-
-
-# my friends
-def getFriendIds(user_id, access_token):
-    wallQuery = "https://api.vk.com/method/friends.get?v=5.2&access_token=%s&user_id=%d" % (access_token, user_id)
-    printQuery(wallQuery)       
-
-    while True:        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-    
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        return data['response']['items']
-    # end while
-    return []
-# end def
-
-# my followers
-def getFollowersIds(user_id, access_token):
-    wallQuery = "https://api.vk.com/method/users.getFollowers?v=5.2&access_token=%s&user_id=%d" % (access_token, user_id)
-    printQuery(wallQuery)       
-
-    while True:        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-    
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        return data['response']['items']
-    # end while
-    return []
-# end def
-
-# my groups
-def getGroupsIds(user_id, access_token):
-    count = 1000
-    offset = 0
-    ids = []
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/groups.get?v=5.2&access_token=%s&user_id=%d&count=%d&offset=%d" % (access_token, user_id, count, offset)
-        printQuery(wallQuery)       
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # Access to the group list is denied due to the user's privacy settings
-            if data["error"]["error_code"] == 260:
-                break;
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        
-        ids += data['response']['items']
-        
-        #printProgress(offset, data['response']['count'])
-        if data['response']['count'] <= offset + count:
-            break;
-
-        offset += 1000
-    # end while
-    return ids
-# end def
-
-# my subscription: users, groups
-def getSubscriptionIds(user_id, access_token):
-    count = 200
-    offset = 0
-    #ids = []
-    
-    while True:
-        wallQuery = "https://api.vk.com/method/users.getSubscriptions?v=5.2&access_token=%s&user_id=%d&count=%d&offset=%d" % (access_token, user_id, count, offset)
-        printQuery(wallQuery)       
-        
-        try:        
-            f = urllib2.urlopen(wallQuery)
-            data = json.load(f)
-            f.close()
-        except:
-            time.sleep(2)
-            continue
-
-        if "error" in data:
-            # user deactivated
-            if data["error"]["error_code"] == 15:
-                break;
-            # user was deleted or banned
-            if data["error"]["error_code"] == 18:
-                break;
-            # too many queryes per second
-            if data["error"]["error_code"] == 6:
-                time.sleep(0.5)
-                continue
-            else:
-                print "ERROR: ", data
-                continue
-                exit(-1)   
-        #end if
-        return data['response']['users']['items'], data['response']['groups']['items']
-        
-        #printProgress(offset, data['response']['count'])
-        #if data['response']['count'] <= offset + count:
-        #    break;
-        # 
-        #offset += 1000
-    # end while
-    #return ids
-    return [], []
-# end def
+        userList = []
+        groupList = []
+        if result != None:
+            for response in result:
+                userList += response['users']['items']
+                groupList += response['groups']['items']
+        return userList, groupList        
 
 def showUsage():
     print "== vksearchactivities.py - v.0.1.0  =="
@@ -863,8 +498,12 @@ except:
 fUsers = open(users_state, "a")
 fGroups = open(groups_state, "a")
 
-# configure
-openDbFile(found_file_desc, found_file)
+searcher = ActivitiesSearcher()
+searcher.openActivitiesFile(found_file)
+searcher.openActivitiesDetailFile(found_file_desc)
+searcher.setAccessToken(access_token)
+searcher.setTargetId(purpose_id)
+
 # setup timeout
 socket.setdefaulttimeout(3)
 
@@ -873,10 +512,10 @@ def weNeedToBeDeeper(user_id, access_token, deep, processedUserList):
     # info
     print "Deep = %d, user_id = %d | Processing number = %d" % (deep, user_id, len(processedUserList))    
     # process the user    
-    userFriendList = getFriendIds(user_id, access_token)
-    userFollowList = getFollowersIds(user_id, access_token)
-    userGroupList = getGroupsIds(user_id, access_token)
-    userSubscribeUserList, mySubscribeGroupList = getSubscriptionIds(user_id, access_token)
+    userFriendList = searcher.fetchFriendIds(user_id)
+    userFollowList = searcher.fetchFollowerIds(user_id)
+    userGroupList = searcher.fetchGroupIds(user_id)
+    userSubscribeUserList, mySubscribeGroupList = searcher.fetchSubscriptionIds(user_id)
     localUserList = userFriendList + userFollowList + userSubscribeUserList
     localGroupList = userGroupList + mySubscribeGroupList
     # mark current user as processed
@@ -897,14 +536,14 @@ def weNeedToBeDeeper(user_id, access_token, deep, processedUserList):
 # result: userList, groupList
 def groupsOfFriends(user_id, access_token):
     # process the user    
-    userFriendList = getFriendIds(user_id, access_token)
-    userFollowList = getFollowersIds(user_id, access_token)
-    userSubscribeUserList, mySubscribeGroupList = getSubscriptionIds(user_id, access_token)
+    userFriendList = searcher.fetchFriendIds(user_id)
+    userFollowList = searcher.fetchFollowerIds(user_id)
+    userSubscribeUserList, mySubscribeGroupList = searcher.fetchSubscriptionIds(user_id)
     localUserList = userFriendList + userFollowList + userSubscribeUserList
     # scan groups
     groups = []
     for id in localUserList:
-        groups += getGroupsIds(id, access_token)
+        groups += searcher.fetchGroupIds(id)
     return groups
     
 userList, groupList, processedUserList = weNeedToBeDeeper(purpose_id, access_token, deep, [])
@@ -930,22 +569,22 @@ for id in userList:
     if id in processedUsers:
         print "User %d already processed" % (id)
         continue
-    scanWall(id, access_token, purpose_id)
-    scanPhoto(id, access_token, purpose_id)
-    scanPhotoComments(id, access_token, purpose_id)
-    scanVideo(id, access_token, purpose_id)
-    scanNote(id, access_token, purpose_id)
+    searcher.searchPost(id)
+    searcher.searchPhoto(id)
+    searcher.searchPhotoComment(id)
+    searcher.searchVideo(id)
+    searcher.searchNote(id)
     fUsers.write("%d;" % (id))
     processedUsers.append(id)
 for id in groupList:
     if id in processedGroups:
         print "Group %d already processed" % (id)
         continue
-    scanWall(-id, access_token, purpose_id)
-    scanPhoto(-id, access_token, purpose_id)
-    scanPhotoComments(-id, access_token, purpose_id)
-    scanVideo(-id, access_token, purpose_id)
-    scanTopic(id, access_token, purpose_id)
+    searcher.searchPost(-id)
+    searcher.searchPhoto(-id)
+    searcher.searchPhotoComment(-id)
+    searcher.searchVideo(-id)
+    searcher.searchTopic(id)
     fGroups.write("%d;" % (id))
     processedGroups.append(id)
 
@@ -953,4 +592,5 @@ fUsers.close()
 fGroups.close()
     
 # deconfigure
-closeDbFile()
+searcher.closeActivitiesFile()
+searcher.closeActivitiesDetailFile()
