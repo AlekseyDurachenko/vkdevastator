@@ -58,7 +58,6 @@ def executeQuery(query):
                 time.sleep(0.5)
                 continue
             else:
-                #print "ERROR: ", data
                 return False
         # end if
     
@@ -96,33 +95,37 @@ def removeNote(access_token, note_id):
     return executeQuery("https://api.vk.com/method/notes.delete?v=5.2&access_token=%s&note_id=%d" % (access_token, int(note_id)))
 
 def showUsage():
-    print "== vkdelete.py - v.0.1.0  =="
+    print "== vkdeleteactivities.py - v.0.1.0  =="
     print "Usage: "
-    print "    vkdelete.py --access_token <> --activity-file <>"
+    print "    vkdeleteactivities.py --access-token <> --activities-file <>"
 
 
 access_token = None
-activity_file = None
+activities_file = None
 
-options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access_token=', 'activity-file='])
-for opt, arg in options:
-    if opt == '--access_token':
-        access_token = arg
-    elif opt == '--activity-file':
-        activity_file = arg
-
-if access_token == None or activity_file == None:
+try:
+    options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access-token=', 'activities-file='])
+    for opt, arg in options:
+        if opt == '--access-token':
+            access_token = arg
+        elif opt == '--activities-file':
+            activities_file = arg   
+except:
     showUsage()
     exit(-1)
 
-print "Access token :", access_token
-print "Activty file :", activity_file
+if access_token == None or activities_file == None:
+    showUsage()
+    exit(-1)
+
+print "Access token    :", access_token
+print "Activities file :", activities_file
 
 # vk can hold the connection for a long time
 socket.setdefaulttimeout(3)
 
 # read lines with activities
-dbFile = open(activity_file, 'r')
+dbFile = open(activities_file, 'r')
 lines = dbFile.read().split("\n")
 lines = list(set(lines))
 

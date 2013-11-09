@@ -781,9 +781,9 @@ def getSubscriptionIds(user_id, access_token):
 # end def
 
 def showUsage():
-    print "== vksearchmyself.py - v.0.1.0  =="
+    print "== vksearchactivities.py - v.0.1.0  =="
     print "Usage: "
-    print "    vksearchmyself.py --access_token <> --purpose_id <> --users_state <> --groups_state <> --found_file <> --found_file_desc <> [--deep <>][--groups_of_friends]"
+    print "    vksearchactivities.py --access-token <> --target-id <> --users-state-file <> --groups-state-file <> --activities-file <> --activities-detail-file <> [--search-depth <>][--scan-groups-of-friends]"
 
 access_token = None
 purpose_id = None
@@ -794,24 +794,28 @@ found_file_desc = None
 deep = 0
 groups_of_friends = False
 
-options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access_token=', 'purpose_id=', 'users_state=', 'groups_state=', 'found_file=', 'found_file_desc=', 'deep=', 'groups_of_friends'])
-for opt, arg in options:
-    if opt == '--access_token':
-        access_token = arg
-    elif opt == '--purpose_id':
-        purpose_id = int(arg)
-    elif opt == '--users_state':
-        users_state = arg
-    elif opt == '--groups_state':
-        groups_state = arg
-    elif opt == '--found_file':
-        found_file = arg
-    elif opt == '--found_file_desc':
-        found_file_desc = arg
-    elif opt == "--deep":
-        deep = int(arg)
-    elif opt == "--groups_of_friends":
-        groups_of_friends = True
+try:
+    options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access-token=', 'target-id=', 'users-state-file=', 'groups-state-file=', 'activities-file=', 'activities-detail-file=', 'search-depth=', 'scan-groups-of-friends'])
+    for opt, arg in options:
+        if opt == '--access-token':
+            access_token = arg
+        elif opt == '--target-id':
+            purpose_id = int(arg)
+        elif opt == '--users-state-file':
+            users_state = arg
+        elif opt == '--groups-state-file':
+            groups_state = arg
+        elif opt == '--activities-file':
+            found_file = arg
+        elif opt == '--activities-detail-file':
+            found_file_desc = arg
+        elif opt == "--search-depth":
+            deep = int(arg)
+        elif opt == "--scan-groups-of-friends":
+            groups_of_friends = True
+except:
+    showUsage()
+    exit(-1)
 
 if access_token == None or purpose_id == None or users_state == None or groups_state == None or found_file == None or found_file_desc == None:
     showUsage()
