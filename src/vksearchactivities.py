@@ -503,10 +503,12 @@ class StateStorage:
 def showUsage():
     print "== vksearchactivities.py - v.0.1.0  =="
     print "Usage: "
-    print "    vksearchactivities.py --access-token <> --target-id <> " \
-    "--state-file <> --activities-file <> --activities-detail-file <> " \
-    "[--custom-user-ids <>][--custom-group-ids <>][--search-depth <>]"  \
-    "[--scan-groups-of-friends][--show-api-queries][--show-api-errors]"
+    print "    vksearchactivities.py --access-token <> --target-id <> "     \
+    "--state-file <> --activities-file <> --activities-detail-file <> "     \
+    "[--custom-user-ids <>][--custom-group-ids <>][--search-user-depth <>]" \
+    "[--search-group-depth <>][--show-api-queries][--show-api-errors]"      \
+    "[--disable-scan-friends][--disable-scan-followers]"                    \
+    "[--disable-scan-user-subscriptions][--disable-scan-group-subscriptions]"
 
 #
 gAccessToken = None
@@ -516,8 +518,12 @@ gActivitiesDetailFileName = None
 gStateFileName = None
 gCustomUserIds = []
 gCustomGroupIds = []
-gSearchDepth = 0
-gScanGOF = False
+gSearchUserDepth = 1
+gSearchGroupDepth = 1
+gScanFriends = True
+gScanFollowers = True
+gScanUserSubscriptions = True
+gScanGroupSubscriptions = True
 gShowApiQueries = False
 gShowApiErrors = False
 
@@ -526,7 +532,9 @@ try:
     options, remainder = getopt.getopt(sys.argv[1:], 'o:v', ['access-token=', 
             'target-id=', 'state-file=', 'activities-file=', 
             'activities-detail-file=', 'custom-user-ids=', 
-            'custom-group-ids=', 'search-depth=', 'scan-groups-of-friends',
+            'custom-group-ids=', 'search-user-depth=', 'search-group-depth=',
+            'disable-scan-friends', 'disable-scan-followers',
+            'disable-scan-user-subscriptions', 'disable-scan-group-subscriptions'
             'show-api-queries', 'show-api-errors'])
     for opt, arg in options:
         if opt == '--access-token':
@@ -539,14 +547,22 @@ try:
             gActivitiesFileName = arg            
         elif opt == '--activities-detail-file':
             gActivitiesDetailFileName = arg
-        elif opt == "--search-depth":
-            gSearchDepth = int(arg)
+        elif opt == "--search-user-depth":
+            gSearchUserDepth = int(arg)
+        elif opt == "--search-group-depth":
+            gSearchGroupDepth = int(arg)
         elif opt == "--custom-user-ids":
             gCustomUserIds = arg.split(",")
         elif opt == "--custom-group-ids":
             gCustomGroupIds = arg.split(",")
-        elif opt == "--scan-groups-of-friends":
-            gScanGOF = True
+        elif opt == "--disable-scan-friends":
+            gScanFriends = False
+        elif opt == "--disable-scan-followers":
+            gScanFollowers = False
+        elif opt == "--disable-scan-user-subscriptions":
+            gScanUserSubscriptions = False
+        elif opt == "--ddisable-scan-group-subscriptions":
+            gScanGroupSubscriptions = False
         elif opt == "--show-api-errors":
             gShowApiErrors = True
         elif opt == "--show-api-queries":
@@ -570,8 +586,12 @@ print "Access token               :", gAccessToken
 print "State file                 :", gStateFileName
 print "Activities file            :", gActivitiesFileName
 print "Activities detail file     :", gActivitiesDetailFileName
-print "Search depth               :", gSearchDepth
-print "Scan groups of the friends :", gScanGOF
+print "Search user depth          :", gSearchUserDepth
+print "Search group depth         :", gSearchGroupDepth
+print "Scan friends               :", gScanFriends
+print "Scan followers             :", gScanFollowers
+print "Scan user subscription     :", gScanUserSubscriptions
+print "Scan group subscription    :", gScanGroupSubscriptions
 print "Custom user ID's           :", gCustomUserIds
 print "Custom group ID's          :", gCustomGroupIds
 print "Show API queries           :", gShowApiQueries
@@ -591,137 +611,91 @@ searcher.openActivitiesDetailFile(gActivitiesDetailFileName)
 searcher.setShowApiQuery(gShowApiQueries)
 searcher.setShowApiError(gShowApiErrors)
 
-# setup timeout
+# setup timeout because vk may keep the connection for a long time
 socket.setdefaulttimeout(3)
 
-
-
-#==============================================================================
-# # result: userList, groupList
-# def weNeedToBeDeeper(user_id, access_token, deep, processedUserList):
-#     # info
-#     print "Deep = %d, user_id = %d | Processing number = %d" % (deep, user_id, len(processedUserList))    
-#     # process the user    
-#     userFriendList = searcher.fetchFriendIds(user_id)
-#     userFollowList = searcher.fetchFollowerIds(user_id)
-#     userGroupList = searcher.fetchGroupIds(user_id)
-#     userSubscribeUserList, mySubscribeGroupList = searcher.fetchSubscriptionIds(user_id)
-#     localUserList = userFriendList + userFollowList + userSubscribeUserList
-#     localGroupList = userGroupList + mySubscribeGroupList
-#     # mark current user as processed
-#     processedUserList += [user_id]
-#     # go to deeper    
-#     if deep > 0:
-#         for id in localUserList:
-#             if id not in processedUserList:
-#                 u, g, processedUserList = weNeedToBeDeeper(id, access_token, deep-1, processedUserList)
-#                 localUserList = list(set(localUserList + u))
-#                 localGroupList = list(set(localGroupList + g))
-#                 print "Users count :", len(localUserList)
-#                 print "Groups count:", len(localGroupList)
-#         # end for
-#     # end if                
-#     return localUserList, localGroupList, processedUserList
-# 
-# # result: userList, groupList
-# def groupsOfFriends(user_id, access_token):
-#     # process the user    
-#     userFriendList = searcher.fetchFriendIds(user_id)
-#     userFollowList = searcher.fetchFollowerIds(user_id)
-#     userSubscribeUserList, mySubscribeGroupList = searcher.fetchSubscriptionIds(user_id)
-#     localUserList = userFriendList + userFollowList + userSubscribeUserList
-#     # scan groups
-#     groups = []
-#     for id in localUserList:
-#         groups += searcher.fetchGroupIds(id)
-#     return groups
-#     
-# userList, groupList, processedUserList = weNeedToBeDeeper(gTargetId, gAccessToken, gSearchDepth, [])
-# userList = list(set(userList + [gTargetId]))
-# if gSearchDepth == 0 and gScanGOF:
-#==============================================================================
-#    groupList = list(set(groupList + groupsOfFriends(gTargetId, gAccessToken)))
+#
+print "-------------------------------------------------------"
 
 # first, list is empty
-userList = []
-groupList = []
+totalUserList = []
+totalGroupList = []
 
-# if --search-depth == 0 and --scan-groups-of-friends we scan the groups 
-# of friends and followers and subscribers
-if gSearchDepth == 0 and gScanGOF:
-    friendList = searcher.fetchFriendIds(gTargetId)
-    followerList = searcher.fetchFollowerIds(gTargetId)
-    subscribeUserList, subscribeGroupList = searcher.fetchSubscriptionIds(gTargetId)
-    # all user ids for targetid
-    foundedUserIds = list(set(friendList + followerList + subscribeUserList))    
-    # fetch group ids of the users
-    num = 0    
-    for id in foundedUserIds:
-        num += 1
-        printMessage("Fetching %d of %d groups (UserId = %d)" % (num, len(foundedUserIds), id))
-        groupList += searcher.fetchGroupIds(id)
-elif gSearchDepth > 0:
-    def weNeedToBeDeeper(user_id, deep, processedUserList, level):
-        # current user is processed
-        processedUserList += [user_id]
-        # fetch user list
-        friendList = searcher.fetchFriendIds(user_id)
-        followerList = searcher.fetchFollowerIds(user_id)
-        subscribeUserList, subscribeGroupList = searcher.fetchSubscriptionIds(user_id)
-        # fetch group list
-        foundedGroupList = list(set(searcher.fetchGroupIds(user_id) + subscribeGroupList))
-        # all user ids for targetid
-        foundedUserIds = list(set(friendList + followerList + subscribeUserList))
-        userIdsFor = foundedUserIds
-        #
-        if deep > 0:
-            num = 0
-            for id in userIdsFor: 
-                num += 1
-                printMessage("%s[+] Fetching friends from %d of %d users (UserId = %d)" % (' ' * level*3, num, len(userIdsFor), id))
-                if id not in processedUserList:
-                    u, g, processedUserList = weNeedToBeDeeper(id, deep-1, processedUserList, level + 1)
-                    foundedUserIds = list(set(foundedUserIds + u))
-                    foundedGroupList = list(set(foundedGroupList + g))
-            # end for
-        # end if                
-        return foundedUserIds, foundedGroupList, processedUserList 
+#
+def weNeedToBeDeeper(user_id, processedUserList, depth):
+    global totalUserList, totalGroupList
+    # we shouldn't scan user_id in the future
+    processedUserList += [user_id]
     #
-    foundedUserIds, foundedGroupList, processedUserList = weNeedToBeDeeper(gTargetId, gSearchDepth, [], 0)
+    if depth == 0:
+        printMessage("[*] Fetching friends and groups... (UserId = %d)" % (user_id))
     #
-    userList += foundedUserIds
-    groupList += foundedGroupList
-    
+    userList = []
+    groupList = []
+    #
+    if gScanFriends:
+        userList += searcher.fetchFriendIds(user_id)
+    if gScanFollowers:
+        userList += searcher.fetchFollowerIds(user_id)
+    if gScanUserSubscriptions or gScanGroupSubscriptions:
+        users, groups = searcher.fetchSubscriptionIds(user_id)
+        if gScanUserSubscriptions:
+            userList += users
+        if gScanGroupSubscriptions:
+            groupList += groups
+    #
+    if depth < gSearchGroupDepth:
+        totalGroupList += groupList + searcher.fetchGroupIds(user_id)
+    #
+    if depth < gSearchUserDepth:
+        totalUserList += userList
+    #        
+    if depth+1 < gSearchUserDepth or depth+1 < gSearchGroupDepth:
+        num = 0
+        for id in userList:
+            num += 1
+            printMessage("%s[+] Fetching friends and groups... User %d of %d is processing (UserId = %d)" % 
+                    ('   ' * (depth+1), num, len(userList), id))
+            if id not in processedUserList:
+                processedUserList = weNeedToBeDeeper(id, processedUserList, depth+1)
+    #
+    return processedUserList
+#
+processedUserList = weNeedToBeDeeper(gTargetId, [], 0)
+
 # add custom user/group ids
 for id in gCustomUserIds:
-    userList += [int(id)]
+    totalUserList += [int(id)]
 for id in gCustomGroupIds:
-    groupList += [int(id)]
+    totalGroupList += [int(id)]
 
-# remove duplicates
-userList = list(set(userList))
-groupList = list(set(groupList))    
+# remove duplicates 
+# we woun't scan page of gTargetId
+totalUserList = set(totalUserList)
+totalUserList.discard(gTargetId)
+totalUserList = list(totalUserList)
+#
+totalGroupList = list(set(totalGroupList))
 
 #
 print "-------------------------------------------------------"
 print "                     < Summarize >                     "
 print "-------------------------------------------------------"
-print "Total user count           :", len(userList)
-print "Total group count          :", len(groupList)
+print "Total user count           :", len(totalUserList)
+print "Total group count          :", len(totalGroupList)
 print "-------------------------------------------------------"
 
 # search targetId on the user pages
-curNum = 0
-userNum = 0
-for id in userList:
+num = userNum = 0
+for id in totalUserList:
     #
     userNum += 1    
-    curNum += 1
-    printMessage("Search progress %.2f: processing %d of %d users (UserId = %d)" % 
-        ((curNum * 100.0)/(len(userList) + len(groupList)), userNum, len(userList), id))
+    num += 1
+    printMessage("Search progress %.3f%%: processing %d of %d users (UserId = %d)" % 
+        ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), userNum, len(totalUserList), id))
     #
     if state.contains(id):
-        printMessage("User with ID = %d already processed" % (id))
+        printMessage("[*] User with ID = %d already processed" % (id))
         continue
     searcher.searchPost(id)
     searcher.searchPhotoComment(id)
@@ -731,15 +705,15 @@ for id in userList:
 
 # search targetId on the group pages
 groupNum = 0
-for id in groupList:
+for id in totalGroupList:
     #
     groupNum += 1    
-    curNum += 1
-    printMessage("Search progress %.2f: processing %d of %d users (GroupId = %d)" %
-        ((curNum * 100.0)/(len(userList) + len(groupList)), groupNum, len(userList), id))
+    num += 1
+    printMessage("Search progress %.3f%%: processing %d of %d groups (GroupId = %d)" %
+        ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), groupNum, len(totalGroupList), id))
     #    
     if state.contains(-id):
-        printMessage("Group with ID = %d already processed" % (-id))
+        printMessage("[*] Group with ID = %d already processed" % (-id))
         continue
     searcher.searchPost(-id)
     searcher.searchPhoto(-id)
