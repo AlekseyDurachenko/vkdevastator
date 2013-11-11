@@ -670,12 +670,18 @@ for id in gCustomGroupIds:
     totalGroupList += [int(id)]
 
 # remove duplicates 
-# we woun't scan page of gTargetId
 totalUserList = set(totalUserList)
+totalGroupList = set(totalGroupList)
+# we woun't scan page of gTargetId
 totalUserList.discard(gTargetId)
-totalUserList = list(totalUserList)
+# remove all group/user ids from state file
+for id in state.userList():
+    totalUserList.discard(id)
+for id in state.groupList():
+    totalGroupList.discard(-id)
 #
-totalGroupList = list(set(totalGroupList))
+totalUserList = list(totalUserList)
+totalGroupList = list(totalGroupList)
 
 #
 print "-------------------------------------------------------"
@@ -694,9 +700,6 @@ for id in totalUserList:
     printMessage("Search progress %.3f%%: processing %d of %d users (UserId = %d)" % 
         ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), userNum, len(totalUserList), id))
     #
-    if state.contains(id):
-        printMessage("[*] User with ID = %d already processed" % (id))
-        continue
     searcher.searchPost(id)
     searcher.searchPhotoComment(id)
     searcher.searchVideo(id)
@@ -712,9 +715,6 @@ for id in totalGroupList:
     printMessage("Search progress %.3f%%: processing %d of %d groups (GroupId = %d)" %
         ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), groupNum, len(totalGroupList), id))
     #    
-    if state.contains(-id):
-        printMessage("[*] Group with ID = %d already processed" % (-id))
-        continue
     searcher.searchPost(-id)
     searcher.searchPhoto(-id)
     searcher.searchPhotoComment(-id)
