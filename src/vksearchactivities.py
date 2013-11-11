@@ -65,6 +65,7 @@ class ActivitiesSearcher:
     #
     __activitiesFile = None
     __activitiesDetailFile = None
+    __logFile = None
     #
     def openActivitiesFile(self,  fileName, rewrite = False):
         if rewrite == False:
@@ -78,11 +79,36 @@ class ActivitiesSearcher:
         else:
             self.__activitiesDetailFile = codecs.open(fileName, 'w', 'utf-8')
     #
+    def openLogFile(self,  fileName, rewrite = False):
+        if rewrite == False:
+            self.__logFile = open(fileName,  'a')
+        else:
+            self.__logFile = open(fileName,  'w')
+        self.__logFile.write("------------------------------------------------------------\n")
+        self.__logFile.write(">>>>>>>>>> START THE LOG AT: %s\n" % (time.strftime("%Y-%m-%d %H:%M:%S:", time.gmtime())))
+        self.__logFile.write("------------------------------------------------------------\n")
+    #
     def closeActivitiesFile(self):
         self.__activitiesFile.close()        
     #
     def closeActivitiesDetailFile(self):
         self.__activitiesDetailFile.close()        
+    #
+    def closeLogFile(self):
+        self.__logFile.close()        
+    #
+    # -------------------------------------------------------------------------
+    # section: write log
+    # -------------------------------------------------------------------------
+    #
+    def writeLog(self, text):
+        if self.__logFile:
+            self.__logFile.write("\n")
+            self.__logFile.write(time.strftime("%Y-%m-%d %H:%M:%S:", time.gmtime()))
+            self.__logFile.write(str(text))
+            self.__logFile.write("\n")
+            self.__logFile.flush()
+            os.fsync(self.__logFile)              
     #
     # -------------------------------------------------------------------------
     # section: write activities details to the file
@@ -240,6 +266,7 @@ class ActivitiesSearcher:
         while True:
             if self.__showApiQuery:
                 printMessage(url)
+            self.writeLog(url)
             try:        
                 reply = urllib2.urlopen(url)
                 data = json.load(reply)
@@ -256,6 +283,7 @@ class ActivitiesSearcher:
                 # something else
                 if self.__showApiError:
                     printMessage(data)
+                self.writeLog(data)
                 return None
             # end if
             return data["response"]
@@ -515,6 +543,7 @@ def showUsage():
     print "Usage: "
     print "    vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>"
     print ""
+    print "    --log-file <>   Path to the log file"
     print "    --search-user-depth  N   (default 1) The users search depth"
     print "    --search-group-depth N   (default 1) The groups search depth"
     print "    --custom-user-ids    N   The list of custom user_id splitted by \",\""
@@ -531,6 +560,7 @@ gAccessToken = None
 gTargetId = None
 gActivitiesFileName = None
 gActivitiesDetailFileName = None
+gLogFileName = None
 gStateFileName = None
 gCustomUserIds = []
 gCustomGroupIds = []
@@ -551,7 +581,7 @@ try:
             'custom-group-ids=', 'search-user-depth=', 'search-group-depth=',
             'disable-scan-friends', 'disable-scan-followers',
             'disable-scan-user-subscriptions', 'disable-scan-group-subscriptions'
-            'show-api-queries', 'show-api-errors'])
+            'show-api-queries', 'show-api-errors', 'log-file='])
     for opt, arg in options:
         if opt == '--access-token':
             gAccessToken = arg
@@ -563,6 +593,8 @@ try:
             gActivitiesFileName = arg            
         elif opt == '--activities-detail-file':
             gActivitiesDetailFileName = arg
+        elif opt == '--log-file':
+            gLogFileName = arg
         elif opt == "--search-user-depth":
             gSearchUserDepth = int(arg)
         elif opt == "--search-group-depth":
@@ -602,6 +634,7 @@ print "Access token               :", gAccessToken
 print "State file                 :", gStateFileName
 print "Activities file            :", gActivitiesFileName
 print "Activities detail file     :", gActivitiesDetailFileName
+print "Log file                   :", gLogFileName
 print "Search user depth          :", gSearchUserDepth
 print "Search group depth         :", gSearchGroupDepth
 print "Scan friends               :", gScanFriends
@@ -624,6 +657,8 @@ searcher.setAccessToken(gAccessToken)
 searcher.setTargetId(gTargetId)
 searcher.openActivitiesFile(gActivitiesFileName)
 searcher.openActivitiesDetailFile(gActivitiesDetailFileName)
+if gLogFileName:
+    searcher.openLogFile(gLogFileName)
 searcher.setShowApiQuery(gShowApiQueries)
 searcher.setShowApiError(gShowApiErrors)
 
@@ -741,4 +776,6 @@ for id in totalGroupList:
 # deconfigure
 searcher.closeActivitiesFile()
 searcher.closeActivitiesDetailFile()
+if gLogFileName:
+    searcher.closeLogFile()
 state.close()
