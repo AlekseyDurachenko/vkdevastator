@@ -38,7 +38,7 @@ vkDevastator
 * Во-первых, вам необходимо зарегистрировать новое приложение типа **Standalone-приложение** 
 (http://vk.com/editapp?act=create), или использовать уже имеющееся. 
 Так или иначе вам потребуется его уникальный **APP_ID**. 
-* После того, Как вам стал известен ваш **APP_ID** следует пройти OAuth авторизацию для получения access_token.
+* После того, как вам стал известен ваш **APP_ID** следует пройти OAuth авторизацию для получения access_token.
 Для этого перейдите по ссылке https://oauth.vk.com/authorize?client_id=APP_ID&scope=friends,photos,audio,video,docs,notes,pages,status,wall,groups,offline&display=page&redirect_uri=https://oauth.vk.com/blank.html&response_type=token& 
 и авторизируйтесь(вместо **APP_ID** поставьте ID вашего приложения). 
 В случае успешной авторизации в адресной строке вы увидите access_token=XXXYYYZZZ. 
