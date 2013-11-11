@@ -84,6 +84,7 @@ class ActivitiesSearcher:
             self.__logFile = open(fileName,  'a')
         else:
             self.__logFile = open(fileName,  'w')
+        self.__logFile.write("\n")
         self.__logFile.write("------------------------------------------------------------\n")
         self.__logFile.write(">>>>>>>>>> START THE LOG AT: %s\n" % (time.strftime("%Y-%m-%d %H:%M:%S:", time.gmtime())))
         self.__logFile.write("------------------------------------------------------------\n")
@@ -103,7 +104,6 @@ class ActivitiesSearcher:
     #
     def writeLog(self, text):
         if self.__logFile:
-            self.__logFile.write("\n")
             self.__logFile.write(time.strftime("%Y-%m-%d %H:%M:%S:", time.gmtime()))
             self.__logFile.write(str(text))
             self.__logFile.write("\n")
