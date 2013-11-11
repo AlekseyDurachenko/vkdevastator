@@ -26,3 +26,35 @@ vkDevastator
 Поиск вашей активности (vksearchactivities.py)
 ----------------------------------------------
 
+    == vksearchactivities.py - v.0.1.0  ==
+    Usage: 
+        vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>
+    
+        --log-file <>   Path to the log file
+        --search-user-depth  N   (default 1) The users search depth
+        --search-group-depth N   (default 1) The groups search depth
+        --custom-user-ids    N   The list of custom user_id splitted by ","
+        --custom-group-ids   N   The list of custom group_id splitted by "," (positive values)
+        --disable-scan-friends   Ignore the friends
+        --disable-scan-friends   Ignore the followers
+        --disable-scan-user-subscriptions   Ignore the subscriptions to users
+        --disable-scan-group-subscriptions  Ignore the subscriptions to groups
+        --show-api-queries   Show the API queries
+        --show-api-errors    Show the API errors
+
+Данный скрипт используется для поиска всей вашей активности. В простейшем случае запуск осуществляется следующим образом:
+
+    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt
+
+Подставьте в этот скрипт вместо XXXYYYZZZ ваш access_token а вместо ID ваш идентификатор пользователя ВКонтакте
+(узнать его можно на странице http://vk.com/settings в поле "Номер страницы"). 
+В результате поиск вашей активности будет произведен во всех ваших группах, друзьях, подписчиках и подписках. 
+
+* Ознакомиться с результатами поиска можно в файле detail.txt
+* Эти же результаты, но в машинно читаемом виде хранятся в файле activities.txt
+* В файле state.txt хранятся идентификаторы пользователь и групп, которые уже были проверены на наличие вашей активности.
+Если вы хотите произвести поиск заново - просто удалите этот файл.
+* Скрипт можно остановить с помощью CTRL+C. Когда вы запустите его вновь поиск продолжится с места остановки.
+
+
+
