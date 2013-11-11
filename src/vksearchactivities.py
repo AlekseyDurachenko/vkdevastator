@@ -513,13 +513,19 @@ class StateStorage:
 def showUsage():
     print "== vksearchactivities.py - v.0.1.0  =="
     print "Usage: "
-    print "    vksearchactivities.py --access-token <> --target-id <> "     \
-    "--state-file <> --activities-file <> --activities-detail-file <> "     \
-    "[--custom-user-ids <>][--custom-group-ids <>][--search-user-depth <>]" \
-    "[--search-group-depth <>][--show-api-queries][--show-api-errors]"      \
-    "[--disable-scan-friends][--disable-scan-followers]"                    \
-    "[--disable-scan-user-subscriptions][--disable-scan-group-subscriptions]"
-
+    print "    vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>"
+    print ""
+    print "    --search-user-depth  N   (default 1) The users search depth"
+    print "    --search-group-depth N   (default 1) The groups search depth"
+    print "    --custom-user-ids    N   The list of custom user_id splitted by \",\""
+    print "    --custom-group-ids   N   The list of custom group_id splitted by \",\" (positive values)"
+    print "    --disable-scan-friends   Ignore the friends"
+    print "    --disable-scan-friends   Ignore the followers"
+    print "    --disable-scan-user-subscriptions   Ignore the subscriptions to users"
+    print "    --disable-scan-group-subscriptions  Ignore the subscriptions to groups"
+    print "    --show-api-queries   Show the API queries"
+    print "    --show-api-errors    Show the API errors"
+    
 #
 gAccessToken = None
 gTargetId = None
