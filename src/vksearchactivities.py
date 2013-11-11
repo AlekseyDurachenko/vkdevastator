@@ -88,6 +88,11 @@ class ActivitiesSearcher:
     # section: write activities details to the file
     # -------------------------------------------------------------------------
     #
+    def writeDetail(self, text):
+        self.__activitiesDetailFile.write(text)
+        self.__activitiesDetailFile.flush()
+        os.fsync(self.__activitiesDetailFile)        
+    #
     def writePostDetail(self, owner_id, post_id, text):
         data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : POST"
@@ -95,7 +100,7 @@ class ActivitiesSearcher:
         data += "\n" + "POST_ID    : %d" % (post_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)
+        self.writeDetail(data)
     #
     def writePostCommentDetail(self, owner_id, post_id, comment_id, text):
         data  = "-------------------------------------------------------"
@@ -105,7 +110,7 @@ class ActivitiesSearcher:
         data += "\n" + "COMMENT_ID : %d" % (comment_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)
+        self.writeDetail(data)
     #
     def writePhotoDetail(self, owner_id, photo_id, text):
         data  = "-------------------------------------------------------"
@@ -114,7 +119,7 @@ class ActivitiesSearcher:
         data += "\n" + "PHOTO_ID   : %d" % (photo_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     #
     def writePhotoCommentDetail(self, owner_id, comment_id, text):
         data  = "-------------------------------------------------------"
@@ -123,7 +128,7 @@ class ActivitiesSearcher:
         data += "\n" + "COMMENT_ID : %d" % (comment_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     #
     def writeTopicDetail(self, group_id, topic_id, text):
         data  = "-------------------------------------------------------"
@@ -132,7 +137,7 @@ class ActivitiesSearcher:
         data += "\n" + "TOPIC_ID   : %d" % (topic_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     #
     def writeTopicCommentDetail(self, group_id, topic_id, comment_id, text):
         data  = "-------------------------------------------------------"
@@ -142,7 +147,7 @@ class ActivitiesSearcher:
         data += "\n" + "COMMENT_ID : %d" % (comment_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     #
     def writeVideoDetail(self, owner_id, video_id, text):
         data  = "-------------------------------------------------------"
@@ -151,7 +156,7 @@ class ActivitiesSearcher:
         data += "\n" + "VIDEO_ID   : %d" % (video_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     #
     def writeVideoCommentDetail(self, owner_id, video_id, text):
         data  = "-------------------------------------------------------"
@@ -161,7 +166,7 @@ class ActivitiesSearcher:
         data += "\n" + "COMMENT_ID : %d" % (video_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)   
+        self.writeDetail(data)   
     #
     def writeNoteDetail(self, user_id, note_id, text):
         data  = "-------------------------------------------------------"
@@ -170,7 +175,7 @@ class ActivitiesSearcher:
         data += "\n" + "NOTE_ID    : %d" % (note_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     #
     def writeNoteCommentDetail(self, user_id, note_id, comment_id, text):
         data  = "-------------------------------------------------------"
@@ -180,41 +185,46 @@ class ActivitiesSearcher:
         data += "\n" + "COMMENT_ID : %d" % (comment_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.__activitiesDetailFile.write(data)    
+        self.writeDetail(data)    
     # 
     # -------------------------------------------------------------------------
     # section: write activities to the file
     # -------------------------------------------------------------------------
     #
+    def write(self, text):
+        self.__activitiesFile.write(text)
+        self.__activitiesFile.flush()
+        os.fsync(self.__activitiesFile)    
+    #
     def writePost(self, owner_id, post_id):
-        self.__activitiesFile.write("POST %d %d\n" % (owner_id, post_id));
+        self.write("POST %d %d\n" % (owner_id, post_id));
     #
     def writePostComment(self, owner_id, post_id, comment_id):
-        self.__activitiesFile.write("POST_COMMENT %d %d %d\n" % (owner_id, post_id, comment_id));
+        self.write("POST_COMMENT %d %d %d\n" % (owner_id, post_id, comment_id));
     #
     def writePhoto(self, owner_id, photo_id):
-        self.__activitiesFile.write("PHOTO %d %d\n" % (owner_id, photo_id))
+        self.write("PHOTO %d %d\n" % (owner_id, photo_id))
     #
     def writePhotoComment(self, owner_id, comment_id):
-        self.__activitiesFile.write("PHOTO_COMMENT %d %d\n" % (owner_id, comment_id))
+        self.write("PHOTO_COMMENT %d %d\n" % (owner_id, comment_id))
     #
     def writeTopic(self, group_id, topic_id):
-        self.__activitiesFile.write("TOPIC %d %d\n" % (group_id, topic_id))
+        self.write("TOPIC %d %d\n" % (group_id, topic_id))
     #
     def writeTopicComment(self, group_id, topic_id, comment_id):
-        self.__activitiesFile.write("TOPIC_COMMENT %d %d %d\n" % (group_id, topic_id, comment_id))
+        self.write("TOPIC_COMMENT %d %d %d\n" % (group_id, topic_id, comment_id))
     #
     def writeVideo(self, owner_id, video_id):
-        self.__activitiesFile.write("VIDEO %d %d\n" % (owner_id, video_id))
+        self.write("VIDEO %d %d\n" % (owner_id, video_id))
     #
     def writeVideoComment(self, owner_id, video_id, comment_id):
-        self.__activitiesFile.write("VIDEO_COMMENT %d %d %d\n" % (owner_id, video_id, comment_id))
+        self.write("VIDEO_COMMENT %d %d %d\n" % (owner_id, video_id, comment_id))
     #
     def writeNote(self, user_id, note_id):
-        self.__activitiesFile.write("NOTE %d %d\n" % (user_id, note_id))
+        self.write("NOTE %d %d\n" % (user_id, note_id))
     #
     def writeNoteComment(self, user_id, note_id, comment_id):
-        self.__activitiesFile.write("NOTE_COMMENT %d %d %d\n" % (user_id, note_id, comment_id))
+        self.write("NOTE_COMMENT %d %d %d\n" % (user_id, note_id, comment_id))
     #
     # -------------------------------------------------------------------------
     # section: api call's
