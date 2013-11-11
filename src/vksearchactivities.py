@@ -89,7 +89,7 @@ class ActivitiesSearcher:
     # -------------------------------------------------------------------------
     #
     def writePostDetail(self, owner_id, post_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : POST"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "POST_ID    : %d" % (post_id)
@@ -98,7 +98,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)
     #
     def writePostCommentDetail(self, owner_id, post_id, comment_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : POST_COMMENT"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "POST_ID    : %d" % (post_id)
@@ -108,7 +108,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)
     #
     def writePhotoDetail(self, owner_id, photo_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : PHOTO"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "PHOTO_ID   : %d" % (photo_id)
@@ -117,7 +117,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)    
     #
     def writePhotoCommentDetail(self, owner_id, comment_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : PHOTO_COMMENT"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "COMMENT_ID : %d" % (comment_id)
@@ -126,7 +126,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)    
     #
     def writeTopicDetail(self, group_id, topic_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : TOPIC"
         data += "\n" + "GROUP_ID   : %d" % (group_id)
         data += "\n" + "TOPIC_ID   : %d" % (topic_id)
@@ -135,7 +135,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)    
     #
     def writeTopicCommentDetail(self, group_id, topic_id, comment_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : TOPIC_COMMENT"
         data += "\n" + "GROUP_ID   : %d" % (group_id)
         data += "\n" + "TOPIC_ID   : %d" % (topic_id)
@@ -145,7 +145,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)    
     #
     def writeVideoDetail(self, owner_id, video_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : VIDEO"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "VIDEO_ID   : %d" % (video_id)
@@ -154,7 +154,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)    
     #
     def writeVideoCommentDetail(self, owner_id, video_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : VIDEO_COMMENT"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "VIDEO_ID   : %d" % (video_id)
@@ -164,7 +164,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)   
     #
     def writeNoteDetail(self, user_id, note_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : NOTE"
         data += "\n" + "USER_ID    : %d" % (user_id)
         data += "\n" + "NOTE_ID    : %d" % (note_id)
@@ -173,7 +173,7 @@ class ActivitiesSearcher:
         self.__activitiesDetailFile.write(data)    
     #
     def writeNoteCommentDetail(self, user_id, note_id, comment_id, text):
-        data  = "========================================"
+        data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : NOTE_COMMENT"
         data += "\n" + "USER_ID    : %d" % (user_id)
         data += "\n" + "NOTE_ID    : %d" % (note_id)
