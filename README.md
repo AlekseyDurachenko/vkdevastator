@@ -9,7 +9,25 @@ vkDevastator
 (**) на данный момент поддерживаются: фотографии, комментарии к фотографиям, видео, комментарии к видео, заметки, 
 комментарии к заметкам, обсуждения, комментарии к обсуждениям, записи на стене и комментарии к записям на стене.
 
+Установка и запуск
+------------------
+Для загрузки скрипта вам потребуется git а так же python 2.x для запуска
 
+В Debian/Ubuntu поставить их можно следующим образом:
+    
+    sudo apt-get install git python
+
+Загрузка и установка скрипта:
+
+    cd ~
+    git clone https://github.com/AlekseyDurachenko/vkDevastator vkDevastator
+    
+Запуск скрипта
+
+    cd ~/vkDevastator/src
+    #python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt
+    #vkdeleteactivities.py --access-token XXXYYYZZZ --activities-file activities.txt
+    
 Получение ACCESS TOKEN
 ----------------------
 * Во первых, вам необходимо зарегистрировать новое приложение типа **Standalone-приложение** 
