@@ -479,8 +479,13 @@ class ActivitiesSearcher:
             for response in result:
                 userList += response['users']['items']
                 groupList += response['groups']['items']
-        return userList, groupList        
-
+        return userList, groupList   
+    #  
+    def getMemberCount(self, group_id):
+        result = self.singleQuery("groups.getMembers?group_id=%d&count=0" % (group_id))
+        if result != None:
+            return int(result['count'])
+        return 0
 #
 class StateStorage:
     #
@@ -554,6 +559,7 @@ def showUsage():
     print "    --disable-scan-group-subscriptions  Ignore the subscriptions to groups"
     print "    --show-api-queries   Show the API queries"
     print "    --show-api-errors    Show the API errors"
+    print "    --limit-member-count   Limit the maximum member count of the group"
     
 #
 gAccessToken = None
@@ -572,6 +578,7 @@ gScanUserSubscriptions = True
 gScanGroupSubscriptions = True
 gShowApiQueries = False
 gShowApiErrors = False
+gLimitMemberCount = 0
 
 #
 try:
@@ -581,7 +588,7 @@ try:
             'custom-group-ids=', 'search-user-depth=', 'search-group-depth=',
             'disable-scan-friends', 'disable-scan-followers',
             'disable-scan-user-subscriptions', 'disable-scan-group-subscriptions'
-            'show-api-queries', 'show-api-errors', 'log-file='])
+            'show-api-queries', 'show-api-errors', 'log-file=', 'limit-member-count='])
     for opt, arg in options:
         if opt == '--access-token':
             gAccessToken = arg
@@ -615,6 +622,8 @@ try:
             gShowApiErrors = True
         elif opt == "--show-api-queries":
             gShowApiQueries = True
+        elif opt == "--limit-member-count":
+            gLimitMemberCount = int(arg)
 except:
     showUsage()
     exit(-1)
@@ -645,6 +654,7 @@ print "Custom user ID's           :", gCustomUserIds
 print "Custom group ID's          :", gCustomGroupIds
 print "Show API queries           :", gShowApiQueries
 print "Show API errors            :", gShowApiErrors
+print "Limit member count         :", gLimitMemberCount
 print "-------------------------------------------------------"
 
 #
@@ -764,8 +774,14 @@ for id in totalGroupList:
     groupNum += 1    
     num += 1
     printMessage("Search progress %.3f%%: processing %d of %d groups (GroupId = %d)" %
-        ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), groupNum, len(totalGroupList), id))
-    #    
+        ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), groupNum, len(totalGroupList), id))    
+    #
+    if gLimitMemberCount > 0:
+        memberCount = searcher.getMemberCount(id);
+        if memberCount > gLimitMemberCount:
+            printMessage("    [!] The count of members is more than limit. Skipped. (%d > %d)" % (memberCount, gLimitMemberCount))
+            continue
+    #
     searcher.searchPost(-id)
     searcher.searchPhoto(-id)
     searcher.searchPhotoComment(-id)
