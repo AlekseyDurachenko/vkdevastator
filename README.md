@@ -64,6 +64,7 @@ vkDevastator
         --disable-scan-group-subscriptions  Ignore the subscriptions to groups
         --show-api-queries   Show the API queries
         --show-api-errors    Show the API errors
+        --limit-member-count   Limit the maximum member count of the group
 
 Данный скрипт используется для поиска всей вашей активности. В простейшем случае запуск осуществляется следующим образом:
 
@@ -90,6 +91,12 @@ vkDevastator
 В данном случае поиск будет произведен в ваших группах, друзьях, подписчиках, подписках а так же в 
 группах друзей, подписчиков, подписках.
 
+Если в группе слишком много участников, то это, как правило, означает большое кол-во контента, а следовательно
+и поиск вашей активности может затянуться надолго. Чтобы этого избежать рекомендуется исключить поиск в группах
+с кол-во участников превышающим определенное число. Сделать это можно при помощи --limit-member-count N,
+где N максимальное кол-во участников в группе.
+
+    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt -search-user-depth 1 --search-group-depth 2 --limit-member-count 1000
 
 Удаление вашей активности (vkdeleteactivities.py)
 -------------------------------------------------
