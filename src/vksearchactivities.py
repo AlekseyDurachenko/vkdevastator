@@ -184,15 +184,15 @@ class ActivitiesSearcher:
         data += "\n"
         self.writeDetail(data)    
     #
-    def writeVideoCommentDetail(self, owner_id, video_id, text):
+    def writeVideoCommentDetail(self, owner_id, video_id, comment_id, text):
         data  = "-------------------------------------------------------"
         data += "\n" + "TYPE       : VIDEO_COMMENT"
         data += "\n" + "OWNER_ID   : %d" % (owner_id)
         data += "\n" + "VIDEO_ID   : %d" % (video_id)
-        data += "\n" + "COMMENT_ID : %d" % (video_id)
+        data += "\n" + "COMMENT_ID : %d" % (comment_id)
         data += "\n" + "TEXT       : %s" % (text)
         data += "\n"
-        self.writeDetail(data)   
+        self.writeDetail(data)
     #
     def writeNoteDetail(self, user_id, note_id, text):
         data  = "-------------------------------------------------------"
