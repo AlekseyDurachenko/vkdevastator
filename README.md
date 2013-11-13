@@ -49,7 +49,7 @@ vkDevastator
 Поиск вашей активности (vksearchactivities.py)
 ----------------------------------------------
 
-    == vksearchactivities.py - v.0.1.0  ==
+    == vksearchactivities.py - v.0.1.1  ==
     Usage: 
         vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>
     
@@ -101,7 +101,7 @@ vkDevastator
 Удаление вашей активности (vkdeleteactivities.py)
 -------------------------------------------------
 
-    == vkdeleteactivities.py - v.0.1.0  ==
+    == vkdeleteactivities.py - v.0.1.1  ==
     Usage: 
         vkdeleteactivities.py --access-token <> --activities-file <>
 

@@ -95,7 +95,7 @@ def removeNote(access_token, note_id):
     return executeQuery("https://api.vk.com/method/notes.delete?v=5.2&access_token=%s&note_id=%d" % (access_token, int(note_id)))
 
 def showUsage():
-    print "== vkdeleteactivities.py - v.0.1.0  =="
+    print "== vkdeleteactivities.py - v.0.1.1  =="
     print "Usage: "
     print "    vkdeleteactivities.py --access-token <> --activities-file <>"
 

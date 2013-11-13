@@ -544,7 +544,7 @@ class StateStorage:
         return userList
 # 
 def showUsage():
-    print "== vksearchactivities.py - v.0.1.0  =="
+    print "== vksearchactivities.py - v.0.1.1  =="
     print "Usage: "
     print "    vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>"
     print ""
