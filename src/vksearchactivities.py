@@ -392,7 +392,7 @@ class ActivitiesSearcher:
                     if item['created_by'] == self.__targetId:
                         self.writeTopic(group_id, item['id'])
                         self.writeTopicDetail(group_id, item['id'], item['title'])
-                        if item['comments']['count'] > 0:
+                        if item['comments'] > 0:
                             self.searchTopicComment(group_id, item['id'])                
                 # end for
             # end for   
