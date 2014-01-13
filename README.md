@@ -65,6 +65,7 @@ vkDevastator
         --show-api-queries   Show the API queries
         --show-api-errors    Show the API errors
         --limit-member-count   Limit the maximum member count of the group
+        --scan-time-limit    N   limit the time of the scanning of user(group), in minutes
 
 Данный скрипт используется для поиска всей вашей активности. В простейшем случае запуск осуществляется следующим образом:
 
@@ -97,6 +98,15 @@ vkDevastator
 где N максимальное кол-во участников в группе.
 
     python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt -search-user-depth 1 --search-group-depth 2 --limit-member-count 1000
+
+Бывает так, что некоторые пользователи или группы имеют слишком большую стену,
+слишком много фотографий и т.п., что приводит к очень долгому сканированию
+данного пользователя(группы). Чтобы этого избежать, достаточно задать 
+колюч --scan-time-limit N, где N - кол-во минут, которое допускается потратить
+на одного пользователя(группу). Если сканирование провести не удалось, то
+пользователь(группа) пропускается а ее id помечается как "просканированная",
+и при повторном запуске не будет сканироваться повторно.
+
 
 Удаление вашей активности (vkdeleteactivities.py)
 -------------------------------------------------

@@ -15,11 +15,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import urllib2, json, time, codecs, getopt, sys, socket, os
+import urllib2, json, time, codecs, getopt, sys, socket, os, datetime
 
 #
 def printMessage(message):
     print time.strftime("%Y-%m-%d %H:%M:%S:", time.gmtime()), message
+
+# 
+class ErrorTimeOut(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 #
 class ActivitiesSearcher:
@@ -32,6 +39,8 @@ class ActivitiesSearcher:
     __apiVersion = 5.2
     __showApiQuery = False
     __showApiError = False
+    __scanTimeLimit = None
+    __scanCurrentTime = None
     #
     def setAccessToken(self, accessToken):
         self.__accessToken = accessToken
@@ -56,6 +65,12 @@ class ActivitiesSearcher:
     #
     def setShowApiError(self, state):
         self.__showApiError = state
+    #
+    def setScanTimeLimit(self, minutes):
+        self.__scanTimeLimit = minutes
+    #
+    def setScanCurrentTime(self, seconds):
+        self.__scanCurrentTime = seconds
     #
     def isShowError(self):
         return self.__showApiError
@@ -258,6 +273,11 @@ class ActivitiesSearcher:
     #    
     # return: response or None on error
     def callApi(self, url):
+        if (self.__scanTimeLimit != None and self.__scanCurrentTime != None):
+            seconds = (datetime.datetime.now() - self.__scanCurrentTime).total_seconds()
+            if (seconds > self.__scanTimeLimit):
+                raise ErrorTimeOut("execute time = %s minutes" % (int(seconds / 60)))
+        
         url = "https://api.vk.com/method/" + url;
         url += "&v=%s" % (self.__apiVersion)
         if self.__accessToken != None:
@@ -288,7 +308,7 @@ class ActivitiesSearcher:
             # end if
             return data["response"]
         # end while    
-    #        
+    #
     # return: response or None on error
     def singleQuery(self, query):        
         return self.callApi(query)
@@ -560,6 +580,7 @@ def showUsage():
     print "    --show-api-queries   Show the API queries"
     print "    --show-api-errors    Show the API errors"
     print "    --limit-member-count   Limit the maximum member count of the group"
+    print "    --scan-time-limit    N   limit the time of the scanning of user(group), in minutes"
     
 #
 gAccessToken = None
@@ -579,6 +600,7 @@ gScanGroupSubscriptions = True
 gShowApiQueries = False
 gShowApiErrors = False
 gLimitMemberCount = 0
+gScanTimeLimit = None
 
 #
 try:
@@ -588,7 +610,8 @@ try:
             'custom-group-ids=', 'search-user-depth=', 'search-group-depth=',
             'disable-scan-friends', 'disable-scan-followers',
             'disable-scan-user-subscriptions', 'disable-scan-group-subscriptions'
-            'show-api-queries', 'show-api-errors', 'log-file=', 'limit-member-count='])
+            'show-api-queries', 'show-api-errors', 'log-file=', 
+            'limit-member-count=', 'scan-time-limit='])
     for opt, arg in options:
         if opt == '--access-token':
             gAccessToken = arg
@@ -624,6 +647,8 @@ try:
             gShowApiQueries = True
         elif opt == "--limit-member-count":
             gLimitMemberCount = int(arg)
+        elif opt == "--scan-time-limit":
+            gScanTimeLimit = int(arg)            
 except:
     showUsage()
     exit(-1)
@@ -655,6 +680,7 @@ print "Custom group ID's          :", gCustomGroupIds
 print "Show API queries           :", gShowApiQueries
 print "Show API errors            :", gShowApiErrors
 print "Limit member count         :", gLimitMemberCount
+print "Scan time limit, minutes   :", gScanTimeLimit
 print "-------------------------------------------------------"
 
 #
@@ -671,7 +697,7 @@ if gLogFileName:
     searcher.openLogFile(gLogFileName)
 searcher.setShowApiQuery(gShowApiQueries)
 searcher.setShowApiError(gShowApiErrors)
-
+searcher.setScanTimeLimit(gScanTimeLimit*60)
 # setup timeout because vk may keep the connection for a long time
 socket.setdefaulttimeout(3)
 
@@ -761,10 +787,15 @@ for id in totalUserList:
     printMessage("Search progress %.3f%%: processing %d of %d users (UserId = %d)" % 
         ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), userNum, len(totalUserList), id))
     #
-    searcher.searchPost(id)
-    searcher.searchPhotoComment(id)
-    searcher.searchVideo(id)
-    searcher.searchNote(id)
+    searcher.setScanCurrentTime(datetime.datetime.now())
+    try:
+        searcher.searchPost(id)
+        searcher.searchPhotoComment(id)
+        searcher.searchVideo(id)
+        searcher.searchNote(id)
+    except ErrorTimeOut as e:
+        print "Time is out for user id %s: %s" %(id, e.value)
+    
     state.add(id)
 
 # search targetId on the group pages
@@ -782,11 +813,16 @@ for id in totalGroupList:
             printMessage("    [!] The count of members is more than limit. Skipped. (%d > %d)" % (memberCount, gLimitMemberCount))
             continue
     #
-    searcher.searchPost(-id)
-    searcher.searchPhoto(-id)
-    searcher.searchPhotoComment(-id)
-    searcher.searchVideo(-id)
-    searcher.searchTopic(id)
+    searcher.setScanCurrentTime(datetime.datetime.now())
+    try:    
+        searcher.searchPost(-id)
+        searcher.searchPhoto(-id)
+        searcher.searchPhotoComment(-id)
+        searcher.searchVideo(-id)
+        searcher.searchTopic(id)
+    except ErrorTimeOut as e:
+        print "Time is out for group id %s: %s" %(id, e.value)
+        
     state.add(-id)
     
 # deconfigure
