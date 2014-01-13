@@ -272,19 +272,19 @@ class ActivitiesSearcher:
     # -------------------------------------------------------------------------
     #    
     # return: response or None on error
-    def callApi(self, url):
-        if (self.__scanTimeLimit != None and self.__scanCurrentTime != None):
-            td = datetime.datetime.now() - self.__scanCurrentTime
-            seconds = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6;
-            if (seconds > self.__scanTimeLimit):
-                raise ErrorTimeOut("execute time = %s minutes" % (int(seconds / 60)))
-        
+    def callApi(self, url):      
         url = "https://api.vk.com/method/" + url;
         url += "&v=%s" % (self.__apiVersion)
         if self.__accessToken != None:
             url += "&access_token=%s" % (self.__accessToken)
         
         while True:
+            if (self.__scanTimeLimit != None and self.__scanCurrentTime != None):
+                td = datetime.datetime.now() - self.__scanCurrentTime
+                seconds = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6;
+                if (seconds > self.__scanTimeLimit):
+                    raise ErrorTimeOut("execute time = %s minutes" % (int(seconds / 60)))            
+            
             if self.__showApiQuery:
                 printMessage(url)
             self.writeLog(url)
