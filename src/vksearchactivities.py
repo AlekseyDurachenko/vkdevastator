@@ -274,7 +274,8 @@ class ActivitiesSearcher:
     # return: response or None on error
     def callApi(self, url):
         if (self.__scanTimeLimit != None and self.__scanCurrentTime != None):
-            seconds = (datetime.datetime.now() - self.__scanCurrentTime).total_seconds()
+            td = datetime.datetime.now() - self.__scanCurrentTime
+            seconds = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6;
             if (seconds > self.__scanTimeLimit):
                 raise ErrorTimeOut("execute time = %s minutes" % (int(seconds / 60)))
         
