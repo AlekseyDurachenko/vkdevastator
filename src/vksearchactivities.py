@@ -807,6 +807,10 @@ for id in totalGroupList:
     num += 1
     printMessage("Search progress %.3f%%: processing %d of %d groups (GroupId = %d)" %
         ((num * 100.0)/(len(totalUserList) + len(totalGroupList)), groupNum, len(totalGroupList), id))    
+    
+    #
+    searcher.setScanCurrentTime(datetime.datetime.now())
+
     #
     if gLimitMemberCount > 0:
         memberCount = searcher.getMemberCount(id);
@@ -814,7 +818,6 @@ for id in totalGroupList:
             printMessage("    [!] The count of members is more than limit. Skipped. (%d > %d)" % (memberCount, gLimitMemberCount))
             continue
     #
-    searcher.setScanCurrentTime(datetime.datetime.now())
     try:    
         searcher.searchPost(-id)
         searcher.searchPhoto(-id)
