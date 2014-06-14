@@ -461,7 +461,7 @@ class ActivitiesSearcher:
                     if item['owner_id'] == self.__targetId:
                         self.writeNote(owner_id, item['id'])
                         self.writeNoteDetail(owner_id, item['id'], item['title'])
-                    if item['comments']['count'] > 0:
+                    if item['comments'] > 0:
                         self.searchNoteComment(owner_id, item['id'])
                 # end for
             # end for   
