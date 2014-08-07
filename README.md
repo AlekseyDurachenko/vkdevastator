@@ -113,6 +113,9 @@ vkDevastator
 пользователь(группа) пропускается а ее id помечается как "просканированная",
 и при повторном запуске не будет сканироваться повторно.
 
+    ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt --search-user-depth 0 --search-group-depth 0 --enable-scan-himself --disable-scan-photos --disable-scan-photocomments --disable-scan-videos --disable-scan-topics
+    
+    Таким образом вы можете очистить свою стену. (не забудьте, что после данной команды потребуется так же выполнить vkdeleteactivities.py)
 
 Удаление вашей активности (vkdeleteactivities.py)
 -------------------------------------------------
