@@ -575,13 +575,19 @@ def showUsage():
     print "    --custom-user-ids    N   The list of custom user_id splitted by \",\""
     print "    --custom-group-ids   N   The list of custom group_id splitted by \",\" (positive values)"
     print "    --disable-scan-friends   Ignore the friends"
-    print "    --disable-scan-friends   Ignore the followers"
+    print "    --disable-scan-followers  Ignore the followers"
     print "    --disable-scan-user-subscriptions   Ignore the subscriptions to users"
     print "    --disable-scan-group-subscriptions  Ignore the subscriptions to groups"
     print "    --show-api-queries   Show the API queries"
     print "    --show-api-errors    Show the API errors"
     print "    --limit-member-count   Limit the maximum member count of the group"
     print "    --scan-time-limit    N   limit the time of the scanning of user(group), in minutes"
+    print "    --enable-scan-himself    Don't ignore himself"
+    print "    --disable-scan-walls"
+    print "    --disable-scan-photos"
+    print "    --disable-scan-photocomments"
+    print "    --disable-scan-videos"
+    print "    --disable-scan-topics"
     
 #
 gAccessToken = None
@@ -601,7 +607,13 @@ gScanGroupSubscriptions = True
 gShowApiQueries = False
 gShowApiErrors = False
 gLimitMemberCount = 0
-gScanTimeLimit = None
+gScanTimeLimit = 999999999
+gEnableScanHimself = False
+gDisableScanWalls = False
+gDisableScanPhotos = False
+gDisableScanPhotoComments = False
+gDisableScanVideos = False
+gDisableScanTopics = False
 
 #
 try:
@@ -612,7 +624,9 @@ try:
             'disable-scan-friends', 'disable-scan-followers',
             'disable-scan-user-subscriptions', 'disable-scan-group-subscriptions'
             'show-api-queries', 'show-api-errors', 'log-file=', 
-            'limit-member-count=', 'scan-time-limit='])
+            'limit-member-count=', 'scan-time-limit=', 'enable-scan-himself',
+            'disable-scan-walls', 'disable-scan-photos', 'disable-scan-photocomments', 
+            'disable-scan-videos', 'disable-scan-topics'])
     for opt, arg in options:
         if opt == '--access-token':
             gAccessToken = arg
@@ -649,7 +663,19 @@ try:
         elif opt == "--limit-member-count":
             gLimitMemberCount = int(arg)
         elif opt == "--scan-time-limit":
-            gScanTimeLimit = int(arg)            
+            gScanTimeLimit = int(arg)     
+        elif opt == "--enable-scan-himself":	  
+            gEnableScanHimself = True
+        elif opt == "--disable-scan-walls":	  
+            gDisableScanWalls = True
+        elif opt == "--disable-scan-photos":	  
+            gDisableScanPhotos = True
+        elif opt == "--disable-scan-photocomments":	  
+            gDisableScanPhotoComments = True
+        elif opt == "--disable-scan-videos":	  
+            gDisableScanVideos = True
+        elif opt == "--disable-scan-topics":	  
+            gDisableScanTopics = True            
 except:
     showUsage()
     exit(-1)
@@ -682,6 +708,12 @@ print "Show API queries           :", gShowApiQueries
 print "Show API errors            :", gShowApiErrors
 print "Limit member count         :", gLimitMemberCount
 print "Scan time limit, minutes   :", gScanTimeLimit
+print "Scan himself               :", gEnableScanHimself
+print "Scan walls                 :", gDisableScanWalls
+print "Scan photos                :", gDisableScanPhotos
+print "Scan photocomments         :", gDisableScanPhotoComments
+print "Scan videos                :", gDisableScanVideos
+print "Scan topics                :", gDisableScanTopics
 print "-------------------------------------------------------"
 
 #
@@ -757,11 +789,15 @@ for id in gCustomUserIds:
 for id in gCustomGroupIds:
     totalGroupList += [int(id)]
 
+if gEnableScanHimself == True:
+    totalUserList += [gTargetId]
+
 # remove duplicates 
 totalUserList = set(totalUserList)
 totalGroupList = set(totalGroupList)
 # we woun't scan page of gTargetId
-totalUserList.discard(gTargetId)
+if gEnableScanHimself == False:
+    totalUserList.discard(gTargetId)
 # remove all group/user ids from state file
 for id in state.userList():
     totalUserList.discard(id)
@@ -790,10 +826,14 @@ for id in totalUserList:
     #
     searcher.setScanCurrentTime(datetime.datetime.now())
     try:
-        searcher.searchPost(id)
-        searcher.searchPhotoComment(id)
-        searcher.searchVideo(id)
-        searcher.searchNote(id)
+        if gDisableScanWalls == False:
+            searcher.searchPost(id)
+        if gDisableScanPhotoComments == False:
+            searcher.searchPhotoComment(id)
+        if gDisableScanVideos == False:
+            searcher.searchVideo(id)
+        if gDisableScanTopics == False:
+            searcher.searchNote(id)
     except ErrorTimeOut as e:
         print "Time is out for user id %s: %s" %(id, e.value)
     
@@ -819,11 +859,16 @@ for id in totalGroupList:
             continue
     #
     try:    
-        searcher.searchPost(-id)
-        searcher.searchPhoto(-id)
-        searcher.searchPhotoComment(-id)
-        searcher.searchVideo(-id)
-        searcher.searchTopic(id)
+        if gDisableScanWalls == False:
+            searcher.searchPost(-id)
+        if gDisableScanPhotos == False:
+            searcher.searchPhoto(-id)
+        if gDisableScanPhotoComments == False:
+            searcher.searchPhotoComment(-id)
+        if gDisableScanVideos == False:
+            searcher.searchVideo(-id)
+        if gDisableScanTopics == False:
+            searcher.searchTopic(id)
     except ErrorTimeOut as e:
         print "Time is out for group id %s: %s" %(id, e.value)
         
