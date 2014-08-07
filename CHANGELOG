@@ -16,3 +16,9 @@ next
 ----
 
 * добавлен аргумент --scan-time-limit
+* добавлен аргумент --enable-scan-himself
+* добавлен аргумент --disable-scan-walls
+* добавлен аргумент --disable-scan-photos
+* добавлен аргумент --disable-scan-photocomments
+* добавлен аргумент --disable-scan-videos
+* добавлен аргумент --disable-scan-topics
