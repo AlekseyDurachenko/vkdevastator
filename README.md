@@ -59,13 +59,19 @@ vkDevastator
         --custom-user-ids    N   The list of custom user_id splitted by ","
         --custom-group-ids   N   The list of custom group_id splitted by "," (positive values)
         --disable-scan-friends   Ignore the friends
-        --disable-scan-friends   Ignore the followers
+        --disable-scan-followers  Ignore the followers
         --disable-scan-user-subscriptions   Ignore the subscriptions to users
         --disable-scan-group-subscriptions  Ignore the subscriptions to groups
         --show-api-queries   Show the API queries
         --show-api-errors    Show the API errors
         --limit-member-count   Limit the maximum member count of the group
         --scan-time-limit    N   limit the time of the scanning of user(group), in minutes
+        --enable-scan-himself    Don't ignore himself
+        --disable-scan-walls
+        --disable-scan-photos
+        --disable-scan-photocomments
+        --disable-scan-videos
+        --disable-scan-topics
 
 Данный скрипт используется для поиска всей вашей активности. В простейшем случае запуск осуществляется следующим образом:
 
@@ -97,7 +103,7 @@ vkDevastator
 с кол-во участников превышающим определенное число. Сделать это можно при помощи --limit-member-count N,
 где N максимальное кол-во участников в группе.
 
-    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt -search-user-depth 1 --search-group-depth 2 --limit-member-count 1000
+    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt --search-user-depth 1 --search-group-depth 2 --limit-member-count 1000
 
 Бывает так, что некоторые пользователи или группы имеют слишком большую стену,
 слишком много фотографий и т.п., что приводит к очень долгому сканированию
