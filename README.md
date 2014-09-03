@@ -19,20 +19,26 @@ vkDevastator
 Для загрузки скрипта вам потребуется git а так же python 2.x для запуска
 
 В Debian/Ubuntu поставить их можно следующим образом:
-    
-    sudo apt-get install git python
+
+```bash    
+sudo apt-get install git python
+```
 
 Загрузка и установка скрипта:
 
-    cd ~
-    git clone https://github.com/AlekseyDurachenko/vkDevastator vkDevastator
-    
+```bash
+cd ~
+git clone https://github.com/AlekseyDurachenko/vkDevastator vkDevastator
+```
+
 Запуск скрипта
 
-    cd ~/vkDevastator/src
-    #python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt
-    #vkdeleteactivities.py --access-token XXXYYYZZZ --activities-file activities.txt
-    
+```bash
+cd ~/vkDevastator/src
+python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt
+vkdeleteactivities.py --access-token XXXYYYZZZ --activities-file activities.txt
+```
+
 Получение ACCESS TOKEN
 ----------------------
 * Во-первых, вам необходимо зарегистрировать новое приложение типа **Standalone-приложение** 
@@ -49,33 +55,37 @@ vkDevastator
 Поиск вашей активности (vksearchactivities.py)
 ----------------------------------------------
 
-    == vksearchactivities.py - v.0.1.1  ==
-    Usage: 
-        vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>
+```
+== vksearchactivities.py - v.0.1.1  ==
+Usage: 
+    vksearchactivities.py --access-token <> --target-id <> --state-file <> --activities-file <> --activities-detail-file <>
     
-        --log-file <>   Path to the log file
-        --search-user-depth  N   (default 1) The users search depth
-        --search-group-depth N   (default 1) The groups search depth
-        --custom-user-ids    N   The list of custom user_id splitted by ","
-        --custom-group-ids   N   The list of custom group_id splitted by "," (positive values)
-        --disable-scan-friends   Ignore the friends
-        --disable-scan-followers  Ignore the followers
-        --disable-scan-user-subscriptions   Ignore the subscriptions to users
-        --disable-scan-group-subscriptions  Ignore the subscriptions to groups
-        --show-api-queries   Show the API queries
-        --show-api-errors    Show the API errors
-        --limit-member-count   Limit the maximum member count of the group
-        --scan-time-limit    N   limit the time of the scanning of user(group), in minutes
-        --enable-scan-himself    Don't ignore himself
-        --disable-scan-walls
-        --disable-scan-photos
-        --disable-scan-photocomments
-        --disable-scan-videos
-        --disable-scan-topics
+    --log-file <>   Path to the log file
+    --search-user-depth  N   (default 1) The users search depth
+    --search-group-depth N   (default 1) The groups search depth
+    --custom-user-ids    N   The list of custom user_id splitted by ","
+    --custom-group-ids   N   The list of custom group_id splitted by "," (positive values)
+    --disable-scan-friends   Ignore the friends
+    --disable-scan-followers  Ignore the followers
+    --disable-scan-user-subscriptions   Ignore the subscriptions to users
+    --disable-scan-group-subscriptions  Ignore the subscriptions to groups
+    --show-api-queries   Show the API queries
+    --show-api-errors    Show the API errors
+    --limit-member-count   Limit the maximum member count of the group
+    --scan-time-limit    N   limit the time of the scanning of user(group), in minutes
+    --enable-scan-himself    Don't ignore himself
+    --disable-scan-walls
+    --disable-scan-photos
+    --disable-scan-photocomments
+    --disable-scan-videos
+    --disable-scan-topics
+```
 
 Данный скрипт используется для поиска всей вашей активности. В простейшем случае запуск осуществляется следующим образом:
 
-    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt
+```bash
+python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt
+```
 
 Подставьте в этот скрипт вместо XXXYYYZZZ ваш access_token а вместо ID ваш идентификатор пользователя ВКонтакте
 (узнать его можно на странице http://vk.com/settings в поле "Номер страницы"). 
@@ -93,7 +103,9 @@ vkDevastator
 что поиск производится только в своих группах/друзьях. "2" означает, что поиск друзей/групп производится у друзей 
 и так далее.
 
-    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt -search-user-depth 1 --search-group-depth 2
+```bash
+python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt -search-user-depth 1 --search-group-depth 2
+```
 
 В данном случае поиск будет произведен в ваших группах, друзьях, подписчиках, подписках а так же в 
 группах друзей, подписчиков, подписках.
@@ -103,7 +115,9 @@ vkDevastator
 с кол-во участников превышающим определенное число. Сделать это можно при помощи --limit-member-count N,
 где N максимальное кол-во участников в группе.
 
-    python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt --search-user-depth 1 --search-group-depth 2 --limit-member-count 1000
+```bash
+python ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt --search-user-depth 1 --search-group-depth 2 --limit-member-count 1000
+```
 
 Бывает так, что некоторые пользователи или группы имеют слишком большую стену,
 слишком много фотографий и т.п., что приводит к очень долгому сканированию
@@ -113,20 +127,26 @@ vkDevastator
 пользователь(группа) пропускается а ее id помечается как "просканированная",
 и при повторном запуске не будет сканироваться повторно.
 
-    ./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt --search-user-depth 0 --search-group-depth 0 --enable-scan-himself --disable-scan-photos --disable-scan-photocomments --disable-scan-videos --disable-scan-topics
-    
+```bash
+./vksearchactivities.py --access-token XXXYYYZZZ --target-id ID --state-file state.txt --activities-file activities.txt --activities-detail-file detail.txt --search-user-depth 0 --search-group-depth 0 --enable-scan-himself --disable-scan-photos --disable-scan-photocomments --disable-scan-videos --disable-scan-topics
+```
+
     Таким образом вы можете очистить свою стену. (не забудьте, что после данной команды потребуется так же выполнить vkdeleteactivities.py)
 
 Удаление вашей активности (vkdeleteactivities.py)
 -------------------------------------------------
 
-    == vkdeleteactivities.py - v.0.1.1  ==
-    Usage: 
-        vkdeleteactivities.py --access-token <> --activities-file <>
+```
+== vkdeleteactivities.py - v.0.1.1  ==
+Usage: 
+    vkdeleteactivities.py --access-token <> --activities-file <>
+```
 
 После того, как вы произвели поиск вашей активности и получили файл activities.txt вам следует запустить:
 
-    vkdeleteactivities.py --access-token XXXYYYZZZ --activities-file activities.txt
+```bash
+vkdeleteactivities.py --access-token XXXYYYZZZ --activities-file activities.txt
+```
     
 Подставьте в этот скрипт вместо XXXYYYZZZ ваш access_token.
 
