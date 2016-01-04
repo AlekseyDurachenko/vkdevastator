@@ -2,7 +2,7 @@
 
 # C extensions
 *.so
-
+src/*.txt
 # Packages
 *.egg
 *.egg-info
@@ -34,3 +34,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+src/.idea
